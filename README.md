@@ -1,8 +1,14 @@
-# Digital_Skl_Attendance_System
-Web system that will serve as a digital register in schools that notifies parent if their child is absent, takes leave or comes in late, this system aims to combat the increase in kidnapping before and after school.
+## Project Overview
+The Digital School Attendance System is a web-based application designed to serve as a digital attendance register for schools. The system is built to enhance student safety by notifying parents if their child is absent, takes early leave, or arrives late. By tracking student attendance and sending real-time notifications, this system aims to reduce the increasing incidents of kidnapping before and after school hours.
 
-- What the project does
-- Why the project is useful
-- How users can get started with the project
-- Where users can get help with your project
-- Who maintains and contributes to the project
+## Why This Project Is Useful
+This project addresses a critical concern in school environments: student safety. With the rise in kidnapping cases, the need for a reliable and efficient system to monitor student attendance has never been greater. The Digital School Attendance System provides a proactive approach by:
+
+Ensuring that parents are immediately informed about their child's attendance status.
+Allowing schools to maintain accurate records of student attendance.
+Reducing the response time in case of any suspicious or unexpected absence.
+
+## Getting Started
+
+## Maintainers and Contributors
+This project is actively maintained by:
