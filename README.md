@@ -100,7 +100,7 @@ To contribute to this project, follow these guidelines:
 ## Maintainers and Contributors
 This project is actively maintained by:
 
-- [M. Yusha Ally](link-to-profile)
+- [M. Yusha Ally](https://github.com/Yusha2849)
 - [A. Zishaan Banoo](https://github.com/azb5499)
 - [Ilhaam Kader](https://github.com/ilhaamkader)
 - [Ashlee Imrith](https://github.com/Ashlee001)
