@@ -50,19 +50,27 @@ To get started with this project, follow the instructions below:
      pip install -r requirements.txt
      ```
 
-5. **Configure Environment Variables:**
-   - Create a `.env` file in the root of your project and configure the following environment variables:
-     ```env
-     DJANGO_SETTINGS_MODULE=your_project.settings
-     DATABASE_URL=postgres://user:password@localhost:5432/yourdatabase
-     ```
-
-6. **Run the Application:**
+5. **Run the Application:**
    - Start the Django development server:
      ```bash
      python manage.py runserver
      ```
 
+6. **Set Up the React Frontend:**
+   - Navigate to the folder where React is installed (e.g., frontend):
+     ```bash
+     cd frontend
+     ```
+     
+7. **Install the React dependencies:**
+     ```bash
+     npm install
+     ```
+
+8. **Start the React development server:**
+     ```bash
+     npm start
+     ```
 ### Contributing
 
 To contribute to this project, follow these guidelines:
