@@ -114,6 +114,8 @@ def login():
                 return redirect(url_for('parent_dashboard'))
             elif prefix == 's':
                 return redirect(url_for('secretary_dashboard'))
+            elif prefix == 'e':
+                return redirect(url_for('educator_dashboard'))
         else:
             flash("Invalid username or password", "danger")
     
@@ -197,28 +199,24 @@ def add_secretary():
     else:
         flash("You must be an admin to access this page.", 'danger')
         return redirect(url_for('login'))
-    
 
-@app.route('/add_parent', methods=['GET', 'POST'])
-def add_parent():
-    if 'user_type' in session and session['user_type'] == 'a':  # Ensure the user is an admin
-        if request.method == 'POST':
-            # Get form data
-            first_name = request.form['first_name']
-            last_name = request.form['last_name']
-            rsa_id_num = request.form['rsa_id_num']
-            email = request.form['email']
-            cell_number = request.form['cell_number']
-            
-            # Automatically generate a username using the email and a predefined format
-            username = generate_username(email, 'parent')
-            
-            # Generate a random password and hash it
+@app.route('/add_educator', methods=['GET', 'POST'])
+def add_educator():
+    if 'user_type' in session and session['user_type'] == 'a':
+        form = AddEducatorForm()
+
+        if form.validate_on_submit():
+            first_name = form.first_name.data
+            last_name = form.last_name.data
+            rsa_id_num = form.rsa_id_num.data
+            email = form.email.data
+            cell_number = form.cell_number.data
+
+            username = generate_username(email, 'educator')
             password = generate_password()
             hashed_password = generate_password_hash(password)
-            
-            # Create a new parent object
-            new_parent = Parents(
+
+            new_educator = Educators(
                 first_name=first_name,
                 last_name=last_name,
                 RSA_id_num=rsa_id_num,
@@ -227,32 +225,81 @@ def add_parent():
                 username=username,
                 password=hashed_password
             )
-            
-            # Add the parent to the database
-            db.session.add(new_parent)
+
+            db.session.add(new_educator)
             db.session.commit()
-            
-            # Send an email to the new parent with their temporary password
+
             msg = Message(subject="Welcome to the System - Your Account Details",
                           sender='systememail@gmail.com',
                           recipients=[email])
-            msg.body = f"Hello {first_name} {last_name},\n\nYour account has been created. Below are your login details:\n\n" \
-                       f"Username: {username}\n" \
-                       f"Password: {password} (Please change this after logging in)\n\n" \
-                       "Thank you."
+            msg.body = (f"Hello {first_name} {last_name},\n\n"
+                        f"Your account has been created. Below are your login details:\n\n"
+                        f"Username: {username}\n"
+                        f"Password: {password} (Please change this after logging in)\n\n"
+                        "Thank you.")
             mail.send(msg)
 
-            flash('Parent successfully added and email sent.')
+            flash('Educator successfully added and email sent.', 'success')
             return redirect(url_for('admin_dashboard'))
 
-        return render_template('add_parent.html')
+        return render_template('add_educator.html', form=form)
     else:
+        flash("You must be an admin to access this page.", 'danger')
         return redirect(url_for('login'))
 
-    
-def get_otp() -> int:
-    otp = randint(000000, 999999)
-    return otp
+@app.route('/manage_profile', methods=['GET', 'POST'])
+@login_required
+def manage_profile():
+    username = current_user.username
+    role = None
+    user = None
+
+    if username.startswith('a'):
+        user = Admin.query.filter_by(username=username).first()
+        role = 'admin'
+    elif username.startswith('s'):
+        user = Secretary.query.filter_by(username=username).first()
+        role = 'secretary'
+    elif username.startswith('e'):
+        user = Educator.query.filter_by(username=username).first()
+        role = 'educator'
+    elif username.startswith('p'):
+        user = Parent.query.filter_by(username=username).first()
+        role = 'parent'
+    else:
+        flash('Invalid user role or username', 'danger')
+        return redirect(url_for('home'))
+
+    if request.method == 'POST':
+
+        if 'change_password' in request.form:
+            current_password = request.form.get('current_password')
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
+
+            if not check_password_hash(user.password, current_password):
+                flash("Current password is incorrect", "danger")
+
+            elif new_password != confirm_password:
+                flash("New password and confirmation don't match", "danger")
+
+            else:
+                user.password = generate_password_hash(new_password)
+                flash("Password updated successfully", "success")
+                db.session.commit()
+
+        if 'update_mobile' in request.form and role in ['secretary', 'educator', 'parent']:
+            new_mobile_number = request.form.get('mobile_number')
+            user.mobile_number = new_mobile_number
+            flash("Mobile number updated successfully", "success")
+            db.session.commit()
+
+        return redirect(url_for('manage_profile'))
+
+    return render_template('manage_profile.html', user=user, role=role)
+
+
+
 
 
 
