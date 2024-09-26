@@ -9,6 +9,9 @@ __pycache__/
 #excluding the virtual env
 myenv/
 
+#exclude the instance folder
+instance/
+
 # Distribution / packaging
 .Python
 build/
