@@ -3,11 +3,9 @@ from units import db, init_app
 from units.dao import AdminDAO
 import os
 
-app = None
+app = Flask(__name__, instance_relative_config=True)
 
-def create_app():
-    app = Flask(__name__, instance_relative_config=True)
-    
+def initialize_server():
     # Ensure the instance folder is created at the root level
     if not os.path.exists(app.instance_path):
         os.makedirs(app.instance_path)
@@ -39,5 +37,5 @@ def get_admins():
     
 
 if __name__ == "__main__":
-    app = create_app()
+    initialize_server()
     app.run(debug=True)
