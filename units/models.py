@@ -32,18 +32,6 @@ class Educator(db.Model):
     educator_cell_num: Mapped[str] = mapped_column(unique=True)
     educator_rsa_id_num: Mapped[str] = mapped_column(unique=True)
 
-class Division(db.Model):
-    __tablename__ = 'division'
-    division_id: Mapped[str] = mapped_column(primary_key=True)
-    division_name: Mapped[str] = mapped_column(unique=True)
-    classes: Mapped[list["Class"]] = relationship(back_populates="division")
-
-class Grade(db.Model):
-    __tablename__ = 'grade'
-    grade_id: Mapped[int] = mapped_column(primary_key=True)
-    grade_number: Mapped[str] = mapped_column(unique=True)
-    classes: Mapped[list["Class"]] = relationship(back_populates="grade")
-
 class Guardian(db.Model):
     __tablename__ = 'guardian'
     guardian_id: Mapped[int] = mapped_column(primary_key=True)
@@ -76,8 +64,6 @@ class Class(db.Model):
     class_students: Mapped[dict] = mapped_column(JSON)
 
     # Foreign keys
-    grade_id: Mapped[int] = mapped_column(ForeignKey("grade.grade_id"))
-    division_id: Mapped[int] = mapped_column(ForeignKey("division.division_id"))
     educator_id: Mapped[int] = mapped_column(ForeignKey("educator.educator_id"))
 
     attendance_record: Mapped[list["AttendanceRecord"]] = relationship(back_populates="class")
@@ -90,4 +76,4 @@ class AttendanceRecord(db.Model):
 
     # Foreign key
     class_id: Mapped[int] = mapped_column(ForeignKey("class.class_id"))
-    classes: Mapped["Class"] = relationship(back_populates="attendance_record")
+    class_: Mapped["Class"] = relationship(back_populates="attendance_record")

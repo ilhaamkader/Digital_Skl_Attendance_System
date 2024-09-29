@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 from units import db, init_app
-from units.dao import AdminDAO
+from units.dao import AdminDAO,DatabaseUtilityDAO
 import os
 
 app = Flask(__name__, instance_relative_config=True)
@@ -37,5 +37,9 @@ def get_admins():
     
 
 if __name__ == "__main__":
-    initialize_server()
+    app = initialize_server()
+    
+    with app.app_context():
+        DatabaseUtilityDAO.execute_sql_script("static/script.sql")
+    
     app.run(debug=True)
