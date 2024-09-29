@@ -2,15 +2,19 @@ from . import db  # Import db from the package-level __init__.py
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import JSON, Date, ForeignKey, Integer, String
 import datetime
+from flask_login import UserMixin  # Added UserMixin for Flask-Login
 
-class Admin(db.Model):
+class Admin(db.Model, UserMixin):
     __tablename__ = 'admin'
     admin_id: Mapped[int] = mapped_column(primary_key=True)
     admin_username: Mapped[str] = mapped_column(unique=True)
     admin_password: Mapped[str]
     admin_email: Mapped[str] = mapped_column(unique=True)
 
-class Secretary(db.Model):
+    def get_id(self):
+        return str(self.admin_id)
+
+class Secretary(db.Model, UserMixin):
     __tablename__ = 'secretary'
     secretary_id: Mapped[int] = mapped_column(primary_key=True)
     secretary_username: Mapped[str] = mapped_column(unique=True)
@@ -21,7 +25,10 @@ class Secretary(db.Model):
     secretary_cell_number: Mapped[str] = mapped_column(unique=True)
     secretary_rsa_id_num: Mapped[str] = mapped_column(unique=True)
 
-class Educator(db.Model):
+    def get_id(self):
+        return str(self.secretary_id)
+
+class Educator(db.Model, UserMixin):
     __tablename__ = 'educator'
     educator_id: Mapped[int] = mapped_column(primary_key=True)
     educator_username: Mapped[str] = mapped_column(unique=True)
@@ -32,7 +39,10 @@ class Educator(db.Model):
     educator_cell_num: Mapped[str] = mapped_column(unique=True)
     educator_rsa_id_num: Mapped[str] = mapped_column(unique=True)
 
-class Guardian(db.Model):
+    def get_id(self):
+        return str(self.educator_id)
+
+class Guardian(db.Model, UserMixin):
     __tablename__ = 'guardian'
     guardian_id: Mapped[int] = mapped_column(primary_key=True)
     guardian_username: Mapped[str] = mapped_column(unique=True)
@@ -44,6 +54,9 @@ class Guardian(db.Model):
     guardian_address: Mapped[str]
     guardian_rsa_id_number: Mapped[str] = mapped_column(unique=True)
     guardian_dependants_list: Mapped[dict] = mapped_column(JSON)
+
+    def get_id(self):
+        return str(self.guardian_id)
 
     dependants: Mapped[list["Student"]] = relationship(back_populates="guardian")
 
@@ -77,4 +90,3 @@ class AttendanceRecord(db.Model):
     # Foreign key
     class_id: Mapped[int] = mapped_column(ForeignKey("class.class_id"))
     class_: Mapped["SchoolClass"] = relationship(back_populates="attendance_record")  # Updated the relationship
-
