@@ -1,4 +1,32 @@
-from .models import Admin, Secretary, Educator, Division, Grade, Guardian, Student, Class, AttendanceRecord, db
+from .models import Admin, Secretary, Educator, Guardian, Student, SchoolClass, AttendanceRecord, db
+from sqlalchemy import text
+from flask import current_app
+
+class UserDAO:
+    @staticmethod
+    def get_user_by_username(username):
+        # Try to find the user in the Admin, Secretary, Educator, or Guardian tables
+        user = Admin.query.filter_by(admin_username=username).first()
+        if not user:
+            user = Secretary.query.filter_by(secretary_username=username).first()
+        if not user:
+            user = Educator.query.filter_by(educator_username=username).first()
+        if not user:
+            user = Guardian.query.filter_by(guardian_username=username).first()
+        return user
+
+    @staticmethod
+    def check_password(user, password):
+        # Check password based on the user type
+        if isinstance(user, Admin):
+            return user.admin_password == password
+        elif isinstance(user, Secretary):
+            return user.secretary_password == password
+        elif isinstance(user, Educator):
+            return user.educator_password == password
+        elif isinstance(user, Guardian):
+            return user.guardian_password == password
+        return False
 
 class AdminDAO:
     @staticmethod
@@ -82,50 +110,6 @@ class EducatorDAO:
             db.session.delete(educator)
             db.session.commit()
 
-class DivisionDAO:
-    @staticmethod
-    def get_all_divisions():
-        return Division.query.all()
-
-    @staticmethod
-    def get_division_by_id(division_id):
-        return Division.query.get(division_id)
-
-    @staticmethod
-    def add_division(division_name):
-        new_division = Division(division_name=division_name)
-        db.session.add(new_division)
-        db.session.commit()
-
-    @staticmethod
-    def delete_division(division_id):
-        division = Division.query.get(division_id)
-        if division:
-            db.session.delete(division)
-            db.session.commit()
-
-class GradeDAO:
-    @staticmethod
-    def get_all_grades():
-        return Grade.query.all()
-
-    @staticmethod
-    def get_grade_by_id(grade_id):
-        return Grade.query.get(grade_id)
-
-    @staticmethod
-    def add_grade(grade_number):
-        new_grade = Grade(grade_number=grade_number)
-        db.session.add(new_grade)
-        db.session.commit()
-
-    @staticmethod
-    def delete_grade(grade_id):
-        grade = Grade.query.get(grade_id)
-        if grade:
-            db.session.delete(grade)
-            db.session.commit()
-
 class GuardianDAO:
     @staticmethod
     def get_all_guardians():
@@ -185,20 +169,18 @@ class StudentDAO:
             db.session.delete(student)
             db.session.commit()
 
-class ClassDAO:
+class SchoolClassDAO:
     @staticmethod
     def get_all_classes():
-        return Class.query.all()
+        return SchoolClass.query.all()
 
     @staticmethod
     def get_class_by_id(class_id):
-        return Class.query.get(class_id)
+        return SchoolClass.query.get(class_id)
 
     @staticmethod
-    def add_class(grade_id, division_id, educator_id, class_students):
-        new_class = Class(
-            grade_id=grade_id,
-            division_id=division_id,
+    def add_class(educator_id, class_students):
+        new_class = SchoolClass(
             educator_id=educator_id,
             class_students=class_students
         )
@@ -207,7 +189,7 @@ class ClassDAO:
 
     @staticmethod
     def delete_class(class_id):
-        class_ = Class.query.get(class_id)
+        class_ = SchoolClass.query.get(class_id)
         if class_:
             db.session.delete(class_)
             db.session.commit()
@@ -237,3 +219,28 @@ class AttendanceRecordDAO:
         if record:
             db.session.delete(record)
             db.session.commit()
+
+# Utility class for handling database script execution
+class DatabaseUtilityDAO:
+    @staticmethod
+    def execute_sql_script(script_path):
+        """Executes the given SQL script using Flask-SQLAlchemy's db engine."""
+        try:
+            # Open the SQL script file
+            with open(script_path, 'r') as file:
+                sql_script = file.read()
+
+            # Log the database path for debugging
+            print(f"Executing SQL script for database at: {current_app.config['SQLALCHEMY_DATABASE_URI']}")
+
+            # Execute the script in the Flask app context
+            with current_app.app_context():
+                with db.engine.begin() as connection:  # 'begin()' ensures auto-commit
+                    for statement in sql_script.split(';'):
+                        if statement.strip():  # Avoid executing empty statements
+                            try:
+                                connection.execute(text(statement))
+                            except Exception as stmt_error:
+                                print(f"Error executing statement: {statement.strip()}\nError: {stmt_error}")
+        except Exception as e:
+            print(f"Error executing script: {e}")
