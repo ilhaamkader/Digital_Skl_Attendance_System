@@ -26,7 +26,7 @@ def initialize_server():
 
 @app.route('/')
 def home():
-    return jsonify(message="Welcome to the Security App")
+    return "<h1>Hello my babies</h1>"
 
 # Add a route to test DAO methods
 @app.route('/admins', methods=['GET'])

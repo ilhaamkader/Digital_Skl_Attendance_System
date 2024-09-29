@@ -58,7 +58,7 @@ class Student(db.Model):
     guardian_id: Mapped[int] = mapped_column(ForeignKey("guardian.guardian_id"))
     guardian: Mapped["Guardian"] = relationship(back_populates="dependants")
 
-class Class(db.Model):
+class SchoolClass(db.Model):  # Changed from Class to SchoolClass
     __tablename__ = 'class'
     class_id: Mapped[int] = mapped_column(primary_key=True)
     class_students: Mapped[dict] = mapped_column(JSON)
@@ -66,7 +66,7 @@ class Class(db.Model):
     # Foreign keys
     educator_id: Mapped[int] = mapped_column(ForeignKey("educator.educator_id"))
 
-    attendance_record: Mapped[list["AttendanceRecord"]] = relationship(back_populates="class")
+    attendance_record: Mapped[list["AttendanceRecord"]] = relationship(back_populates="class_")
 
 class AttendanceRecord(db.Model):
     __tablename__ = 'attendance_record'
@@ -76,4 +76,5 @@ class AttendanceRecord(db.Model):
 
     # Foreign key
     class_id: Mapped[int] = mapped_column(ForeignKey("class.class_id"))
-    class_: Mapped["Class"] = relationship(back_populates="attendance_record")
+    class_: Mapped["SchoolClass"] = relationship(back_populates="attendance_record")  # Updated the relationship
+

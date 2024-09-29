@@ -1,6 +1,6 @@
 -- Drop tables if they exist to start fresh
 DROP TABLE IF EXISTS attendance_record;
-DROP TABLE IF EXISTS class;
+DROP TABLE IF EXISTS school_class;  -- Renamed from class
 DROP TABLE IF EXISTS student;
 DROP TABLE IF EXISTS guardian;
 DROP TABLE IF EXISTS educator;
@@ -59,7 +59,7 @@ CREATE TABLE student (
     guardian_id INTEGER NOT NULL REFERENCES guardian(guardian_id)
 );
 
-CREATE TABLE class (
+CREATE TABLE school_class (  -- Renamed from class
     class_id INTEGER PRIMARY KEY AUTOINCREMENT,
     class_students JSON NOT NULL,
     educator_id INTEGER NOT NULL REFERENCES educator(educator_id)
@@ -69,7 +69,7 @@ CREATE TABLE attendance_record (
     attendance_record_id INTEGER PRIMARY KEY AUTOINCREMENT,
     attendance_record_date DATE NOT NULL,
     attendance_record_list JSON NOT NULL,
-    class_id INTEGER NOT NULL REFERENCES class(class_id)
+    class_id INTEGER NOT NULL REFERENCES school_class(class_id)  -- Updated reference
 );
 
 -- Insert data into tables
@@ -106,7 +106,7 @@ VALUES
 ('Sam', 'Williams', '1003031234567', 2);
 
 -- Classes
-INSERT INTO class (class_students, educator_id)
+INSERT INTO school_class (class_students, educator_id)  -- Updated reference to school_class
 VALUES 
 ('{"students": ["student_1", "student_2"]}', 1),
 ('{"students": ["student_3"]}', 2);

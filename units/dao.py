@@ -1,4 +1,4 @@
-from .models import Admin, Secretary, Educator, Guardian, Student, Class, AttendanceRecord, db
+from .models import Admin, Secretary, Educator, Guardian, Student, SchoolClass, AttendanceRecord, db
 from sqlalchemy import text
 from flask import current_app
 
@@ -143,18 +143,18 @@ class StudentDAO:
             db.session.delete(student)
             db.session.commit()
 
-class ClassDAO:
+class SchoolClassDAO:  # Updated to SchoolClassDAO
     @staticmethod
     def get_all_classes():
-        return Class.query.all()
+        return SchoolClass.query.all()
 
     @staticmethod
     def get_class_by_id(class_id):
-        return Class.query.get(class_id)
+        return SchoolClass.query.get(class_id)
 
     @staticmethod
     def add_class(educator_id, class_students):
-        new_class = Class(
+        new_class = SchoolClass(  # Updated the reference to SchoolClass
             educator_id=educator_id,
             class_students=class_students
         )
@@ -163,7 +163,7 @@ class ClassDAO:
 
     @staticmethod
     def delete_class(class_id):
-        class_ = Class.query.get(class_id)
+        class_ = SchoolClass.query.get(class_id)
         if class_:
             db.session.delete(class_)
             db.session.commit()
@@ -213,11 +213,11 @@ class DatabaseUtilityDAO:
                     for statement in sql_script.split(';'):
                         if statement.strip():  # Avoid executing empty statements
                             try:
-                                print(f"Executing SQL statement:\n{statement.strip()}")
+                                # print(f"Executing SQL statement:\n{statement.strip()}")
                                 connection.execute(text(statement))
                             except Exception as stmt_error:
                                 print(f"Error executing statement: {statement.strip()}\nError: {stmt_error}")
 
-            print("SQL script executed successfully.")
+            # print("SQL script executed successfully.")
         except Exception as e:
             print(f"Error executing script: {e}")
