@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Class List</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>GENERATE CLASS LIST</h1>
+    
+    <div class="box">
+        <form action="/generate-class-list" method="POST" autocomplete="off">
+            <!-- Date Input -->
+            <div class="inputBox">
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+
+            <!-- Grade Dropdown with Search -->
+            <div class="inputBox">
+                <label for="grade">Grade:</label>
+                <input list="grades" id="grade" name="grade" placeholder="Select or search grade" required>
+                <datalist id="grades">
+                    <option value="Grade 1">
+                    <option value="Grade 2">
+                    <option value="Grade 3">
+                    <option value="Grade 4">
+                    <option value="Grade 5">
+                    <option value="Grade 6">
+                    <option value="Grade 7">
+                    <option value="Grade 8">
+                    <option value="Grade 9">
+                    <option value="Grade 10">
+                    <option value="Grade 11">
+                    <option value="Grade 12">
+                </datalist>
+            </div>
+
+            <!-- Division Dropdown with Search -->
+            <div class="inputBox">
+                <label for="division">Division:</label>
+                <input list="divisions" id="division" name="division" placeholder="Select or search division" required>
+                <datalist id="divisions">
+                    <option value="A">
+                    <option value="B">
+                    <option value="C">
+                    <option value="D">
+                </datalist>
+            </div>
+
+            <!-- Generate List Button -->
+            <input type="submit" value="Generate List">
+            </div>
+        </form>
+    </div>
+</body>
+</html>

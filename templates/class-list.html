@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class List Generated</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1>CLASS LIST</h1>
+
+    <div class="box" style="width: 50%;">
+        <form action="/submit-register" method="POST" autocomplete="off">
+                <!-- Date (Inactive) -->
+        <div class="inputBox">
+            <label for="date">Date:</label>
+            <input type="text" id="date" name="date" value="2024-09-25" readonly style="color: black;">
+        </div>
+
+        <!-- Grade & Division (Inactive) -->
+        <div class="inputBox">
+            <label for="grade-division">Grade & Division:</label>
+            <input type="text" id="grade-division" name="grade-division" value="Grade 10 - A" readonly style="color: black;">
+        </div>
+
+        <!-- Form Educator (Inactive) -->
+        <div class="inputBox">
+            <label for="educator">Form Educator:</label>
+            <input type="text" id="educator" name="educator" value="Ms. Smith" readonly style="color: black;">
+        </div>
+
+        <hr style="border: 1px solid #ccc; margin: 20px 0;">
+
+
+        <!-- Student List Table -->
+        <h2>STUDENT LIST</h2>
+        <table class="student-list" style="width: 100%; color: black;">
+            <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Leave Status</th>
+                    <th>Attendance Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1001</td>
+                    <td>John</td>
+                    <td>Doe</td>
+                    <td>Present</td>
+                    <td><input type="checkbox" name="attendance[1001]" value="present"></td>
+                </tr>
+                <tr>
+                    <td>1002</td>
+                    <td>Jane</td>
+                    <td>Smith</td>
+                    <td>Leave</td>
+                    <td><input type="checkbox" name="attendance[1002]" value="absent" checked disabled></td>
+                </tr>
+            </tbody>
+        </table>
+        </form>
+    </div>
+</body>
+</html>

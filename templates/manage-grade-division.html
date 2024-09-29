@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Grade & Division</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Page Heading -->
+    <h1>MANAGE GRADE/DIVISION</h1>
+
+    <div class="box">
+        <form>
+            <!-- Grade SearchBox -->
+            <div class="inputBox">
+                <label for="grade">Grade</label>
+                <input type="text" id="grade" name="grade" list="grade-options" required>
+                <datalist id="grade-options">
+                    <option value="Grade 1">
+                    <option value="Grade 2">
+                    <option value="Grade 3">
+                    <option value="Grade 4">
+                    <option value="Grade 5">
+                </datalist>
+            </div>
+
+            <!-- Division SearchBox -->
+            <div class="inputBox">
+                <label for="division">Division</label>
+                <input type="text" id="division" name="division" list="division-options" required>
+                <datalist id="division-options">
+                    <option value="A">
+                    <option value="B">
+                    <option value="C">
+                    <option value="D">
+                    <option value="E">
+                </datalist>
+            </div>
+
+            <!-- Form Educator SearchBox -->
+            <div class="inputBox">
+                <label for="form-educator">Form Educator</label>
+                <input type="text" id="form-educator" name="form-educator" list="educator-options" required>
+                <datalist id="educator-options">
+                    <option value="Mr. Smith">
+                    <option value="Mrs. Johnson">
+                    <option value="Ms. Williams">
+                    <option value="Mr. Brown">
+                    <option value="Miss Davis">
+                </datalist>
+            </div>
+
+            <!-- Submit Button -->
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+</body>
+</html>

@@ -1,4 +1,4 @@
-from .models import Admin, Secretary, Educator, Division, Grade, Guardian, Student, Class, AttendanceRecord, db
+from .models import Admin, db # Secretary, Educator, Division, Grade, Guardian, Student, Class, AttendanceRecord
 
 class AdminDAO:
     @staticmethod
@@ -14,6 +14,7 @@ class AdminDAO:
         new_admin = Admin(admin_username=username, admin_password=password, admin_email=email)
         db.session.add(new_admin)
         db.session.commit()
+        print("Admin added:", new_admin)  # Debug output
 
     @staticmethod
     def delete_admin(admin_id):
@@ -21,7 +22,7 @@ class AdminDAO:
         if admin:
             db.session.delete(admin)
             db.session.commit()
-
+'''
 class SecretaryDAO:
     @staticmethod
     def get_all_secretaries():
@@ -237,3 +238,6 @@ class AttendanceRecordDAO:
         if record:
             db.session.delete(record)
             db.session.commit()
+
+            
+'''

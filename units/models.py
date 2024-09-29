@@ -1,5 +1,5 @@
 from . import db  # Import db from the package-level __init__.py
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column#, relationship
 from sqlalchemy import JSON, Date, ForeignKey, Integer, String
 import datetime
 
@@ -10,6 +10,8 @@ class Admin(db.Model):
     admin_password: Mapped[str]
     admin_email: Mapped[str] = mapped_column(unique=True)
 
+
+'''
 class Secretary(db.Model):
     __tablename__ = 'secretary'
     secretary_id: Mapped[int] = mapped_column(primary_key=True)
@@ -77,7 +79,7 @@ class Class(db.Model):
 
     # Foreign keys
     grade_id: Mapped[int] = mapped_column(ForeignKey("grade.grade_id"))
-    division_id: Mapped[int] = mapped_column(ForeignKey("division.division_id"))
+    division_id: Mapped[str] = mapped_column(ForeignKey("division.division_id"))
     educator_id: Mapped[int] = mapped_column(ForeignKey("educator.educator_id"))
 
     attendance_record: Mapped[list["AttendanceRecord"]] = relationship(back_populates="class")
@@ -91,3 +93,5 @@ class AttendanceRecord(db.Model):
     # Foreign key
     class_id: Mapped[int] = mapped_column(ForeignKey("class.class_id"))
     classes: Mapped["Class"] = relationship(back_populates="attendance_record")
+
+'''
