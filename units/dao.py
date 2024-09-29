@@ -42,6 +42,7 @@ class AdminDAO:
         new_admin = Admin(admin_username=username, admin_password=password, admin_email=email)
         db.session.add(new_admin)
         db.session.commit()
+        print("Admin added:", new_admin)  # Debug output
 
     @staticmethod
     def delete_admin(admin_id):

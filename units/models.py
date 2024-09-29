@@ -1,5 +1,5 @@
 from . import db  # Import db from the package-level __init__.py
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column#, relationship
 from sqlalchemy import JSON, Date, ForeignKey, Integer, String
 import datetime
 from flask_login import UserMixin  # Added UserMixin for Flask-Login
@@ -90,3 +90,5 @@ class AttendanceRecord(db.Model):
     # Foreign key
     class_id: Mapped[int] = mapped_column(ForeignKey("class.class_id"))
     class_: Mapped["SchoolClass"] = relationship(back_populates="attendance_record")  # Updated the relationship
+
+'''
