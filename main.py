@@ -64,7 +64,7 @@ def forgot():
 @app.route('/admin_dashboard')
 def admin_dashboard():
     return render_template('admin-dashboard.html')
-
+    
 # Add Educator Route
 @app.route('/add_educator', methods=['GET', 'POST'])
 def add_educator():
@@ -105,7 +105,7 @@ def change_password():
 @app.route('/secretary_dashboard')
 def secretary_dashboard():
     return render_template('secretary-dashboard.html')
-
+    
 # Add Parent/Guardian Route
 @app.route('/add_parent_guardian', methods=['GET', 'POST'])
 def add_parent_guardian():
@@ -145,7 +145,16 @@ def add_attendance_exemption():
 # Educator Dashboard Route
 @app.route('/educator_dashboard')
 def educator_dashboard():
-    return render_template('educator-dashboard.html')
+     # This is just sample data; replace it with your actual data source.
+    class_list = [
+        {'name': 'Student 1'},
+        {'name': 'Student 2'},
+        {'name': 'Student 3'},
+        {'name': 'Student 4'},
+        {'name': 'Student 5'},
+        {'name': 'Student 6'}
+    ]
+    return render_template('educator-dashboard.html', class_list=class_list)
 
 # Generate Class List Route
 @app.route('/generate_class_list', methods=['GET', 'POST'])

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h1>ADMIN DASHBOARD</h1>
+
+<div class="box">
+    <form method="POST" style="text-align: center;">
+        <h2>ADD USERS</h2>
+            <div class="buttons">
+                <input type="button" value="Add Secretary" onclick="window.location.href='{{ url_for('add_secretary') }}'">
+                <input type="button" value="Add Educator" onclick="window.location.href='{{ url_for('add_educator') }}'">
+            </div>
+    </form>
+</div>
+</div>
+<input type="button" value="Manage Profile" onclick="window.location.href='{{ url_for('manage_profile') }}'">
+
+
+{% endblock %}
