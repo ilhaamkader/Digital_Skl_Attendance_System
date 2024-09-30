@@ -1,35 +1,15 @@
-<<<<<<< HEAD
 from flask import Flask, jsonify, redirect, url_for, request, flash, render_template
-from units import db, init_app
+from units import db, init_app, forms
 from units.dao import AdminDAO, UserDAO, DatabaseUtilityDAO  # Added UserDAO for login
+from units.models import Admin
 from flask_login import login_user, logout_user, login_required, current_user
+from units.utilities import save_config_data, is_configured, generate_username, generate_password_hash#, generate_password, update_grade_division_json, update_parent_json
+from flask_mail import Mail, Message
 import os
 
 app = Flask(__name__, instance_relative_config=True)
 
 def initialize_server():
-=======
-import os
-import string
-
-import json
-
-from flask import Flask, jsonify, render_template, redirect, url_for, flash, request
-from units import db, init_app, forms
-from units.dao import AdminDAO
-from units.models import Admin
-from units.utilities import save_config_data, is_configured, generate_username#, generate_password, update_grade_division_json, update_parent_json
-from flask_mail import Mail, Message
-from dotenv import load_dotenv
-from random import *
-
-from werkzeug.security import generate_password_hash, check_password_hash
-
-app = Flask(__name__, instance_relative_config=True)
-
-def create_app():
-    
->>>>>>> backend/admin_func
     # Ensure the instance folder is created at the root level
     if not os.path.exists(app.instance_path):
         os.makedirs(app.instance_path)
@@ -37,11 +17,8 @@ def create_app():
     # Configure the app to store the SQLite database in the root instance folder
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(app.instance_path, 'project.db')}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-<<<<<<< HEAD
-    app.secret_key = 'super secret string'
-=======
-    app.config['SECRET_KEY'] = 'f3b1e2d4c5a69788b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5g6h7i8j9k0l1m2'
->>>>>>> backend/admin_func
+    
+    app.config['SECRET_KEY'] = 'super secret string'
     
     # Initialize the database and import models
     init_app(app)
@@ -50,21 +27,6 @@ def create_app():
     with app.app_context():
         db.create_all()
 
-<<<<<<< HEAD
-    return app
-
-@app.route('/')
-def home():
-    if current_user.is_authenticated:
-        return f"<h1>Welcome, {current_user.username}</h1>"
-    return "<h1>Welcome, Guest</h1>"
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-=======
     # Add a basic route
     return app
     
@@ -131,7 +93,18 @@ def setup():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        # Use the DAO to get the user and check password
+        user = UserDAO.get_user_by_username(username)
 
+        if user and UserDAO.check_password(user, password):
+            login_user(user)
+            return redirect(url_for('home'))
+# Above is code from azb5499
+# Below is code from Yusha
     form = forms.Login()
     if form.validate_on_submit():
         username = form.username.data
@@ -162,12 +135,27 @@ def login():
             elif prefix == 'e':
                 return redirect(url_for('educator_dashboard'))
         else:
-            flash("Invalid username or password", "danger")    
+            flash('Invalid username or password')
+
     return render_template('login.html', form = form)
 
-'''
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
 
-
+# Add a route to test DAO methods
+@app.route('/admins', methods=['GET'])
+@login_required
+def get_admins():
+    if isinstance(current_user, Admin):
+        admins = AdminDAO.get_all_admins()
+        return jsonify([{"id": admin.admin_id, "username": admin.admin_username} for admin in admins])
+    else:
+        return jsonify({"error": "Access forbidden"}), 403
+    
+# Start point for code from Yusha
 @app.route('/manage_profile', methods=['GET', 'POST'])
 @login_required
 def manage_profile():
@@ -230,36 +218,32 @@ def update_attendance():
         class_id = f"{form.grade.data}{form.division.data}"
         students = Students.query.filter_by(grade=form.grade.data, division=form.division.data).all()
         form.student_id.choices = [(student.id, f"{student.first_name} {student.last_name}") for student in students]
->>>>>>> backend/admin_func
         
-        # Use the DAO to get the user and check password
-        user = UserDAO.get_user_by_username(username)
+    if form.validate_on_submit():
+        date_str = form.date.data.strftime('%Y-%m-%d')
+        class_id = f"{form.grade.data}{form.division.data}"
+        filename = f"{date_str}_{class_id}_attendance.json"
+        filepath = os.path.join('attendance_records', filename)
 
-        if user and UserDAO.check_password(user, password):
-            login_user(user)
-            return redirect(url_for('home'))
+        if os.path.exists(filepath):
+            with open(filepath, 'r') as file:
+                attendance_data = json.load(file)
+
+            for student_record in attendance_data:
+                if student_record['student_id'] == form.student_id.data:
+                    student_record['attendance_status'] = form.attendance_status.data
+                    break
+
+            with open(filepath, 'w') as file:
+                json.dump(attendance_data, file, indent=4)
+
+            flash('Attendance updated successfully.', 'success')
+            return redirect(url_for('secretery_dashboard'))
         else:
-            flash('Invalid username or password')
+            flash('Attendance record not found for the selected class and date.', 'danger')
 
-    return render_template('login.html')
+    return render_template('update_attendance.html', form=form)
 
-<<<<<<< HEAD
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('home'))
-
-# Add a route to test DAO methods
-@app.route('/admins', methods=['GET'])
-@login_required
-def get_admins():
-    if isinstance(current_user, Admin):
-        admins = AdminDAO.get_all_admins()
-        return jsonify([{"id": admin.admin_id, "username": admin.admin_username} for admin in admins])
-    else:
-        return jsonify({"error": "Access forbidden"}), 403
-=======
 def mark_attendance(date, class_id):
     filepath = os.path.join('attendance_records', f"{date}_{class_id}_attendance.json")
     
@@ -649,35 +633,7 @@ def add_student():
     else:
         return redirect(url_for('login'))
 
-'''
-
-#                              \\\\\\\
-#                            \\\\\\\\\\\\
-#                          \\\\\\\\\\\\\\\
-#  -----------,-|           |C>   // )\\\\|
-#           ,','|          /    || ,'/////|
-#---------,','  |         (,    ||   /////
-#        ||    |          \\  ||||//''''|
-#        ||    |           |||||||     _|
-#         ||    |______      `````\____/ \
-#         ||    |     ,|         _/_____/ \
-#        ||  ,'    ,' |        /          |
-#        ||,'    ,'   |       |         \  |
-#________|/    ,'     |      /           | |
-#_____________,'      ,',_____|      |    | |
-#            |     ,','      |      |    | |
-#            |   ,','    ____|_____/    /  |
-#            | ,','  __/ |             /   |
-#____________|','   ///_/-------------/   |
-#             |===========,'
-#   ASHLEE IN THE FUTURE
-# BEARD WILL BE LIKE THIS 
-# I WISH
-
-
-
-
->>>>>>> backend/admin_func
+# End point for code from Yusha
 
 if __name__ == "__main__":
     app = initialize_server()

@@ -1,20 +1,37 @@
-from flask_ckeditor import CKEditorField
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, PasswordField, StringField, validators, EmailField, UsernameField, SelectField
+from wtforms import SubmitField, PasswordField, StringField, validators, EmailField, SelectField, DateField
 from wtforms.fields.numeric import IntegerField
 from wtforms.fields.simple import BooleanField, TextAreaField
-from wtforms.validators import EqualTo, DataRequired, Email, Length, Regexp
+from wtforms.validators import EqualTo, DataRequired, Email, Length, Regexp, NumberRange
 
 class Config(FlaskForm):
-    email = EmailField('Email', validators=[validators.Email(), validators.DataRequired()])
-    password = PasswordField('Password', validators=[validators.DataRequired()])
-    confirm_password = PasswordField('Confirm Password', validators=[
-        validators.DataRequired(),
-        EqualTo('password', message='Passwords must match')])
+    email = StringField('Admin Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Admin Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[validators.DataRequired(),EqualTo('password', message='Passwords must match')])
+
+    school_name = StringField('School Name', validators=[DataRequired()])
+
+    grade_range_start = IntegerField(
+        'Grade Range Start', 
+        validators=[DataRequired(), NumberRange(min=1, max=12)]
+    )
+    grade_range_end = IntegerField(
+        'Grade Range End', 
+        validators=[DataRequired(), NumberRange(min=1, max=12)]
+    )
+    division_range_start = StringField(
+        'Division Range Start', 
+        validators=[DataRequired(), Length(min=1, max=1)]
+    )
+    division_range_end = StringField(
+        'Division Range End', 
+        validators=[DataRequired(), Length(min=1, max=1)]
+    )
     submit = SubmitField('Submit')
 
+
 class Login(FlaskForm):
-    username = UsernameField('Username', validators=[validators.DataRequired()])
+    username = EmailField('Username', validators=[validators.DataRequired()])
     password = PasswordField('Password', validators=[validators.DataRequired()])
     submit = SubmitField('Submit')
 

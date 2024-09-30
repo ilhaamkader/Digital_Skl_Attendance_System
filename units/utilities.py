@@ -97,6 +97,7 @@ def generate_username(email, user_type):
     username = f"{prefix}{email_prefix}"
     return username
 
+# All code above has been tested and is safe
 
 '''
 
@@ -170,18 +171,3 @@ def update_parent_json(student):
 
     with open(filepath, 'w') as file:
         json.dump(data, file, indent=4)'''
-
-#        .--.       .--.
-#    _  `    \     /    `  _
-#     `\.===. \.^./ .===./`
-#            \/`"`\/
-#        ,  |      |  ,
-#       / `\|;-.-'|/` \
-#       /    |::\  |    \
-#   .-' ,-'`|:::; |`'-, '-.
-#       |   |::::\|   | 
-#       |   |::::;|   |
-#       |   \:::://   |
-#       |    `.://'   |
-#jgs    .'             `.
-#    _,'                 `,_
