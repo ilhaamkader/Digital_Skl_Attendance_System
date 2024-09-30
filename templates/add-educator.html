@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Educator{% endblock %}
+
+{% block content %}
+    <h1>EDUCATOR</h1>
+    <div class="box">
+        <form method="POST" autocomplete="off">
+            {{ form.hidden_tag() }}
+            <h2>ENTER YOUR INFORMATION</h2>
+
+            <div class="inputBox">
+                {{ form.first_name.label }}
+                {{ form.first_name(class="form-control", placeholder="First Name") }}
+                {% if form.first_name.errors %}
+                    <span class="error">{{ form.first_name.errors[0] }}</span>
+                {% endif %}
+            </div>
+
+            <div class="inputBox">
+                {{ form.last_name.label }}
+                {{ form.last_name(class="form-control", placeholder="Last Name") }}
+                {% if form.last_name.errors %}
+                    <span class="error">{{ form.last_name.errors[0] }}</span>
+                {% endif %}
+            </div>
+
+            <div class="inputBox">
+                {{ form.id_number.label }}
+                {{ form.id_number(class="form-control", placeholder="ID Number") }}
+                {% if form.id_number.errors %}
+                    <span class="error">{{ form.id_number.errors[0] }}</span>
+                {% endif %}
+            </div>
+
+            <div class="inputBox">
+                {{ form.email.label }}
+                {{ form.email(class="form-control", placeholder="Email") }}
+                {% if form.email.errors %}
+                    <span class="error">{{ form.email.errors[0] }}</span>
+                {% endif %}
+            </div>
+
+            <div class="inputBox">
+                {{ form.mobile_number.label }}
+                {{ form.mobile_number(class="form-control", placeholder="Mobile Number") }}
+                {% if form.mobile_number.errors %}
+                    <span class="error">{{ form.mobile_number.errors[0] }}</span>
+                {% endif %}
+            </div>
+
+            <input type="submit" value="Add Educator" class="submit-button">
+        </form>
+    </div>
+{% endblock %}
