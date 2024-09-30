@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Login Form{% endblock %}
+
+{% block content %}
+    <h1>WELCOME!</h1>
+    <div class="box">
+        <form method="POST" autocomplete="off">
+            {{ form.hidden_tag() }}  
+            <h2>SIGN IN</h2>
+
+            <div class="inputBox">
+                {{ form.username.label }}
+                {{ form.username(class="form-control",  placeholder="Enter your Username") }}
+                {% if form.username.errors %}
+                    <span class="error">{{ form.username.errors[0] }}</span>
+                {% endif %}
+            </div>
+
+            <div class="links">
+                <a href="{{ url_for('forgot') }}">{{ form.forgot_username.label }}</a>
+            </div>
+
+            <div class="inputBox">
+                {{ form.password.label }}
+                {{ form.password(class="form-control", placeholder="Enter your password") }}
+                {% if form.password.errors %}
+                    <span>{{ form.password.errors[0] }}</span>
+                {% endif %}
+            </div>
+
+            <div class="links">
+                <a href="{{ url_for('forgot') }}">{{ form.forgot_password.label }}</a>
+            </div>
+
+            {{ form.login(class='login-button') }}
+
+            <div class="links">
+                <a href="{{ url_for('setup') }}">{{ form.signup.label }}</a>
+            </div>
+
+        </form>
+    </div>
+{% endblock %}

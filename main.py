@@ -2,6 +2,7 @@ from flask import Flask, jsonify, redirect, url_for, request, flash, render_temp
 from units import db, init_app
 from units.dao import AdminDAO, UserDAO, DatabaseUtilityDAO  # Added UserDAO for login
 from flask_login import login_user, logout_user, login_required, current_user
+from units.forms import Config, Login, ForgotPassword, ResetPassword, AddSecretaryForm, AddParentForm, AddStudentForm, UpdateAttendanceForm, AddEducatorForm, ExemptionForm, GenerateClassListForm, ManageProfileForm, ChangePasswordForm
 import os
 
 app = Flask(__name__, instance_relative_config=True)
@@ -25,29 +26,142 @@ def initialize_server():
 
     return app
 
-@app.route('/')
-def home():
-    if current_user.is_authenticated:
-        return f"<h1>Welcome, {current_user.username}</h1>"
-    return "<h1>Welcome, Guest</h1>"
+@app.route('/', methods=['GET', 'POST'])
+def setup():
+    form = Config()
+    if form.validate_on_submit():
+        pass
+    return render_template('setup.html', form=form)
 
+# Config Page Route
+@app.route('/config', methods=['GET', 'POST'])
+def config():
+    config_form = Config()
+    if request.method == 'POST' and config_form.validate_on_submit():
+        flash('Configuration updated successfully!', 'success')
+        return redirect(url_for('config'))
+    return render_template('config.html', form=config_form)
+
+# Login Page Route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        # Use the DAO to get the user and check password
-        user = UserDAO.get_user_by_username(username)
+    login_form = Login()
+    if request.method == 'POST' and login_form.validate_on_submit():
+        flash('Login successful!', 'success')
+        return redirect(url_for('dashboard'))
+    return render_template('login.html', form=login_form)
 
-        if user and UserDAO.check_password(user, password):
-            login_user(user)
-            return redirect(url_for('home'))
-        else:
-            flash('Invalid username or password')
+# Forgot Username/Password Route
+@app.route('/forgot', methods=['GET', 'POST'])
+def forgot():
+    forgot_form = ForgotPassword()
+    if request.method == 'POST' and forgot_form.validate_on_submit():
+        flash('Recovery email sent!', 'success')
+        return redirect(url_for('login'))
+    return render_template('forgot-user-pass.html', form=forgot_form)
 
-    return render_template('login.html')
+# Admin Dashboard Route
+@app.route('/admin_dashboard')
+def admin_dashboard():
+    return render_template('admin-dashboard.html')
 
+# Add Educator Route
+@app.route('/add_educator', methods=['GET', 'POST'])
+def add_educator():
+    add_educator_form = AddEducatorForm()
+    if request.method == 'POST' and add_educator_form.validate_on_submit():
+        flash('Educator added successfully!', 'success')
+        return redirect(url_for('admin_dashboard'))
+    return render_template('add-educator.html', form=add_educator_form)
+
+# Add Secretary Route
+@app.route('/add_secretary', methods=['GET', 'POST'])
+def add_secretary():
+    add_secretary_form = AddSecretaryForm()
+    if request.method == 'POST' and add_secretary_form.validate_on_submit():
+        flash('Secretary added successfully!', 'success')
+        return redirect(url_for('admin_dashboard'))
+    return render_template('add-secretary.html', form=add_secretary_form)
+
+# Manage Profile Route
+@app.route('/manage_profile', methods=['GET', 'POST'])
+def manage_profile():
+    manage_profile_form = ManageProfileForm()
+    if request.method == 'POST' and manage_profile_form.validate_on_submit():
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('manage_profile'))
+    return render_template('manage-profile.html', form=manage_profile_form)
+
+# Change Password Route
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    change_password_form = ResetPassword()
+    if request.method == 'POST' and change_password_form.validate_on_submit():
+        flash('Password updated successfully!', 'success')
+        return redirect(url_for('manage_profile'))
+    return render_template('change-password.html', form=change_password_form)
+
+# Secretary Dashboard Route
+@app.route('/secretary_dashboard')
+def secretary_dashboard():
+    return render_template('secretary-dashboard.html')
+
+# Add Parent/Guardian Route
+@app.route('/add_parent_guardian', methods=['GET', 'POST'])
+def add_parent_guardian():
+    add_parent_guardian_form = AddParentForm()
+    if request.method == 'POST' and add_parent_guardian_form.validate_on_submit():
+        flash('Parent/Guardian added successfully!', 'success')
+        return redirect(url_for('secretary_dashboard'))
+    return render_template('add-parent-guardian.html', form=add_parent_guardian_form)
+
+# Add Student Route
+@app.route('/add_student', methods=['GET', 'POST'])
+def add_student():
+    add_student_form = AddStudentForm()
+    if request.method == 'POST' and add_student_form.validate_on_submit():
+        flash('Student added successfully!', 'success')
+        return redirect(url_for('secretary_dashboard'))
+    return render_template('add-student.html', form=add_student_form)
+
+# Update Attendance Route
+@app.route('/update_attendance', methods=['GET', 'POST'])
+def update_attendance():
+    update_attendance_form = UpdateAttendanceForm()
+    if request.method == 'POST' and update_attendance_form.validate_on_submit():
+        flash('Attendance updated successfully!', 'success')
+        return redirect(url_for('secretary_dashboard'))
+    return render_template('update-attendance.html', form=update_attendance_form)
+
+# Add Attendance Exemption Route
+@app.route('/add_attendance_exemption', methods=['GET', 'POST'])
+def add_attendance_exemption():
+    add_attendance_exemption_form = ExemptionForm()
+    if request.method == 'POST' and add_attendance_exemption_form.validate_on_submit():
+        flash('Attendance exemption added successfully!', 'success')
+        return redirect(url_for('secretary_dashboard'))
+    return render_template('add-attendance-exemption.html', form=add_attendance_exemption_form)
+
+# Educator Dashboard Route
+@app.route('/educator_dashboard')
+def educator_dashboard():
+    return render_template('educator-dashboard.html')
+
+# Generate Class List Route
+@app.route('/generate_class_list', methods=['GET', 'POST'])
+def generate_class_list():
+    generate_class_list_form = GenerateClassListForm()
+    if request.method == 'POST' and generate_class_list_form.validate_on_submit():
+        flash('Class list generated successfully!', 'success')
+        return redirect(url_for('educator_dashboard'))
+    return render_template('generate-class-list.html', form=generate_class_list_form)
+
+# Parent Dashboard Route
+@app.route('/parent_dashboard')
+def parent_dashboard():
+    return render_template('parent-dashboard.html')
+
+# Logout
 @app.route('/logout')
 @login_required
 def logout():

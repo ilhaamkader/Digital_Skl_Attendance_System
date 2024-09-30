@@ -1,6 +1,5 @@
-from flask_ckeditor import CKEditorField
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, PasswordField, StringField, validators, EmailField, UsernameField, SelectField
+from wtforms import SubmitField, PasswordField, StringField, validators, EmailField, DateField, SelectField
 from wtforms.fields.numeric import IntegerField
 from wtforms.fields.simple import BooleanField, TextAreaField
 from wtforms.validators import EqualTo, DataRequired, Email, Length, Regexp
@@ -14,15 +13,25 @@ class Config(FlaskForm):
     submit = SubmitField('Submit')
 
 class Login(FlaskForm):
-    username = UsernameField('Username', validators=[validators.DataRequired()])
-    password = PasswordField('Password', validators=[validators.DataRequired()])
-    submit = SubmitField('Submit')
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    forgot_username = SubmitField('Forgot Username')
+    forgot_password = SubmitField('Forgot Password')
+    signup = SubmitField('Signup')
+    login = SubmitField('Login')
 
 
 class ForgotPassword(FlaskForm):
     email = EmailField('Email', validators=[validators.Email(), validators.DataRequired()])
     submit = SubmitField('Submit')
 
+class AddEducatorForm(FlaskForm):
+    first_name = StringField('First Name', validators=[DataRequired()])
+    last_name = StringField('Last Name', validators=[DataRequired()])
+    id_number = StringField('ID Number', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    mobile_number = StringField('Mobile Number', validators=[DataRequired()])
+    add_educator = SubmitField('Add Educator')      
 
 class ResetPassword(FlaskForm):
     password = PasswordField('Password', validators=[validators.DataRequired()])
@@ -48,6 +57,16 @@ class AddSecretaryForm(FlaskForm):
     ])
     submit = SubmitField('Add Secretary')
 
+class ManageProfileForm(FlaskForm):
+    username = StringField('Username', render_kw={'readonly': True})
+    email = StringField('Email', render_kw={'readonly': True})
+    change_password = SubmitField('Change Password')
+
+class ChangePasswordForm(FlaskForm):
+    new_password = PasswordField('New Password', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('new_password')])
+    update_password = SubmitField('Update Password')
+    
 class AddParentForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired(), Length(min=2, max=50)])
     last_name = StringField('Last Name', validators=[DataRequired(), Length(min=2, max=50)])
@@ -82,6 +101,14 @@ class AddStudentForm(FlaskForm):
     division = SelectField('Division', choices=[], validators=[DataRequired()])
     submit = SubmitField('Add Student')
 
+class UpdateAttendanceForm(FlaskForm):
+    date = StringField('Date', validators=[DataRequired()])
+    grade = SelectField('Grade', choices=[], validators=[DataRequired()])
+    division = SelectField('Division', choices=[], validators=[DataRequired()])
+    student_id = SelectField('StudentID', choices=[], validators=[DataRequired()])
+    attendance_status = SelectField('Attendance Status', choices=[('Present', 'Present'), ('Absent', 'Absent')], validators=[DataRequired()])
+    update_attendance = SubmitField('Update Attendance')
+    
 class ExemptionForm(FlaskForm):
     start_date = DateField('Start Date', validators=[DataRequired()])
     end_date = DateField('End Date', validators=[DataRequired()])
@@ -96,3 +123,4 @@ class GenerateClassListForm(FlaskForm):
     grade = SelectField('Grade', choices=[], validators=[DataRequired()])
     division = SelectField('Division', choices=[], validators=[DataRequired()])
     submit = SubmitField('Generate List')
+

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Recovery{% endblock %}
+
+{% block content %}
+    <h1>ACCOUNT RECOVERY</h1>
+    <div class="box">
+        <form method="POST" autocomplete="off">
+            {{ form.hidden_tag() }}  
+            <h2>FORGOT PASSWORD/USERNAME</h2>
+
+            <div class="inputBox">
+                {{ form.email.label }}
+                {{ form.email(class="form-control", placeholder="Enter your Email") }}
+                {% if form.email.errors %}
+                    <span class="error">{{ form.email.errors[0] }}</span>
+                {% endif %}
+            </div>
+
+            {{ form.submit(class="submit-button") }}
+        </form>
+    </div>
+{% endblock %}
