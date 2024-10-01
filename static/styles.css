@@ -14,7 +14,8 @@ body {
 	align-items: center;
 	min-height: 100vh;
 	flex-direction: column;
-	background: #a8a8a8;
+	background: url('https://www.wallpaperflare.com/static/247/651/769/pencil-wood-pencil-education-writing-wallpaper.jpg') no-repeat center center;
+	background-size: cover;
 	padding-top: 80px;
     margin: 0;
 	color: #d1d1d1;
@@ -59,6 +60,7 @@ input:focus::placeholder {
 	border-radius: 8px;                                     
 	overflow: hidden;
 	margin: 20px auto;  
+	padding: 20px;
 }        
 
 form {
@@ -182,6 +184,50 @@ input[type="button"]:active {
 	top: 0;
 	z-index: 1000;
 	font-family: 'Arvo', serif;
+}
+
+/* Dropdown styling */
+select {
+    width: 100%;
+    padding: 20px 10px 10px;
+    background: transparent;
+    border: 1px solid #5f5f5f;
+    color: #d1d1d1;
+    font-size: 1em;
+    letter-spacing: 0.05em;
+    appearance: none; 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBkPSJNOC4wOTggMTEuODQ4bC01LjQ2OC01LjA4OGEuNjIuNjIgMCAwIDEgLjg0OC0uOTI4TDggMTAuMzg0bDUuNTI4LTQuNTI4YS42Mi42MiAwIDAgMSAuODQ4LjkzTDguMDk4IDExLjg0OHoiIGZpbGw9IiNkMWQxZDEiLz48L3N2Zz4=');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    border-radius: 4px;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+select:hover {
+    border-color: #6de599; 
+    color: #bfbfbf; 
+}
+
+select:focus {
+    border-color: #6de599; 
+    color: #bfbfbf; 
+    outline: none;
+}
+
+option {
+    background-color: #5f5f5f; 
+    color: #d1d1d1; 
+}
+
+select::after {
+    content: '\25BC'; 
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
 }
 
 .navbar ul {

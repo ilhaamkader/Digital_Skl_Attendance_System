@@ -1,11 +1,13 @@
 from flask import Flask, jsonify, redirect, url_for, request, flash, render_template
 from units import db, init_app
+from flask_bootstrap import Bootstrap5
 from units.dao import AdminDAO, UserDAO, DatabaseUtilityDAO  # Added UserDAO for login
 from flask_login import login_user, logout_user, login_required, current_user
-from units.forms import Config, Login, ForgotPassword, ResetPassword, AddSecretaryForm, AddParentForm, AddStudentForm, UpdateAttendanceForm, AddEducatorForm, ExemptionForm, GenerateClassListForm, ManageProfileForm, ChangePasswordForm
+from units.forms import Config, Login, ForgotPassword, ResetPassword, AddSecretaryForm, AddParentForm, AddStudentForm, UpdateAttendanceForm, AddEducatorForm, ExemptionForm, GenerateClassListForm, ManageProfileForm
 import os
 
 app = Flask(__name__, instance_relative_config=True)
+bootstrap = Bootstrap5(app)
 
 def initialize_server():
     # Ensure the instance folder is created at the root level
@@ -31,7 +33,7 @@ def setup():
     form = Config()
     if form.validate_on_submit():
         pass
-    return render_template('setup.html', form=form)
+    return render_template('config.html', form=form)
 
 # Config Page Route
 @app.route('/config', methods=['GET', 'POST'])
@@ -113,7 +115,7 @@ def add_parent_guardian():
     if request.method == 'POST' and add_parent_guardian_form.validate_on_submit():
         flash('Parent/Guardian added successfully!', 'success')
         return redirect(url_for('secretary_dashboard'))
-    return render_template('add-parent-guardian.html', form=add_parent_guardian_form)
+    return render_template('add-parent.html', form=add_parent_guardian_form)
 
 # Add Student Route
 @app.route('/add_student', methods=['GET', 'POST'])

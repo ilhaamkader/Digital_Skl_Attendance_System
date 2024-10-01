@@ -1,44 +1,24 @@
 {% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form %}
 
 {% block title %}Login Form{% endblock %}
 
 {% block content %}
-    <h1>WELCOME!</h1>
+<h1>WELCOME!</h1>
     <div class="box">
-        <form method="POST" autocomplete="off">
-            {{ form.hidden_tag() }}  
-            <h2>SIGN IN</h2>
+        <h2>SIGN IN</h2>
+        <input type="button" value="Add Secretary" onclick="window.location.href='{{ url_for('add_parent_guardian') }}'">
 
-            <div class="inputBox">
-                {{ form.username.label }}
-                {{ form.username(class="form-control",  placeholder="Enter your Username") }}
-                {% if form.username.errors %}
-                    <span class="error">{{ form.username.errors[0] }}</span>
-                {% endif %}
-            </div>
 
+        <div class="inputBox">
+            {{ render_form(form) }}
             <div class="links">
-                <a href="{{ url_for('forgot') }}">{{ form.forgot_username.label }}</a>
+                <a href="{{ url_for('forgot') }}">Forgot Username?</a>
+                |
+                <a href="{{ url_for('forgot') }}">Forgot Password?</a>
+                |
+                <a href="{{ url_for('config') }}">Sign Up</a>
             </div>
-
-            <div class="inputBox">
-                {{ form.password.label }}
-                {{ form.password(class="form-control", placeholder="Enter your password") }}
-                {% if form.password.errors %}
-                    <span>{{ form.password.errors[0] }}</span>
-                {% endif %}
-            </div>
-
-            <div class="links">
-                <a href="{{ url_for('forgot') }}">{{ form.forgot_password.label }}</a>
-            </div>
-
-            {{ form.login(class='login-button') }}
-
-            <div class="links">
-                <a href="{{ url_for('setup') }}">{{ form.signup.label }}</a>
-            </div>
-
-        </form>
+        </div>
     </div>
 {% endblock %}

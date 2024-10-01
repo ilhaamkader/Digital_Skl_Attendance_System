@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form %}
+
+{% block title %}Configure Profile{% endblock %}
+
+{% block content %}
+<h1>CONFIGURE PROFILE</h1>
+<div class="box">
+    <h2> SIGN UP </h2>
+    <div class="inputBox">
+        {{ render_form(form) }}
+    </div>
+</div>
+{% endblock %}
