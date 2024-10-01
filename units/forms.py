@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import SubmitField, PasswordField, StringField, validators, EmailField, DateField, SelectField
 from wtforms.fields.numeric import IntegerField
 from wtforms.fields.simple import BooleanField, TextAreaField
-from wtforms.validators import EqualTo, DataRequired, Email, Length, Regexp
+from wtforms.validators import EqualTo, DataRequired, Email, Length, Regexp, NumberRange
 
 class Config(FlaskForm):
     email = EmailField('Email', validators=[validators.Email(), validators.DataRequired()], render_kw={"placeholder": "Enter your email"})
@@ -10,6 +10,32 @@ class Config(FlaskForm):
     confirm_password = PasswordField('Confirm Password', validators=[
         validators.DataRequired(),
         EqualTo('password', message='Passwords must match')], render_kw={"placeholder": "Confirm your password"})
+    
+    school_name = StringField('School Name', validators=[DataRequired()], render_kw={"placeholder": "Enter school name"})
+ 
+    grade_range_start = IntegerField(
+        'Grade Range Start',
+        validators=[DataRequired(), NumberRange(min=0, max=12)],
+        render_kw={"placeholder": "Enter Lowest Grade "}
+
+    )
+    grade_range_end = IntegerField(
+        'Grade Range End',
+        validators=[DataRequired(), NumberRange(min=0, max=12)],
+        render_kw={"placeholder": "Enter Highest Grade"}
+    )
+    division_range_start = StringField(
+        'Division Range Start',
+        validators=[DataRequired(), Length(min=1, max=1)],
+        render_kw={"placeholder": "Enter Division Start"}
+
+    )
+    division_range_end = StringField(
+        'Division Range End',
+        validators=[DataRequired(), Length(min=1, max=1)],
+                render_kw={"placeholder": "Enter Division End"}
+
+    )
     submit = SubmitField('Submit')
 
 class Login(FlaskForm):
@@ -48,15 +74,15 @@ class ResetPassword(FlaskForm):
     password = PasswordField('New Password', validators=[
         DataRequired(), 
         Length(min=8, message='Password must be at least 8 characters long')
-    ], render_kw={"placeholder": "Enter your new password"})
+    ], render_kw={"placeholder": "Enter new password"})
     
-    confirm_password = PasswordField('Confirm New Password', validators=[
+    confirm_password = PasswordField('Confirm Password', validators=[
         DataRequired(),
         EqualTo('password', message='Passwords must match')
-    ], render_kw={"placeholder": "Confirm your new password"})
+    ], render_kw={"placeholder": "Confirm new password"})
     
     # If you have some sort of agreement confirmation
-    confirm = BooleanField('I confirm that I want to change my password', validators=[DataRequired()])
+    confirm = BooleanField('Confirm', validators=[DataRequired()])
     
     submit = SubmitField('Submit')
 

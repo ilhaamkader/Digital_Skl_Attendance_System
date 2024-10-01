@@ -139,6 +139,35 @@ h2 {
     text-decoration: none; /* Keep underline removed */
 }
 
+/* Style for integer fields (input[type="number"]) */
+input[type="number"] {
+    width: 100%;
+    padding: 20px 10px 10px;
+    background: transparent;
+    outline: none;
+    box-shadow: none;
+    border: 1px solid #5f5f5f;
+    color: #d1d1d1;
+    font-size: 1em;
+    letter-spacing: 0.05em;
+    transition: 0.5s;
+    z-index: 10;
+    border-radius: 4px;
+}
+
+input[type="number"]:focus {
+    border-color: #6de599;
+    color: #d1d1d1;
+}
+
+input[type="number"]::placeholder {
+    color: #8f8f8f;
+    opacity: 1; /* Ensures visibility */
+}
+
+input[type="number"]:focus::placeholder {
+    color: transparent; /* Hide placeholder on focus */
+}
 
 /* Styling for error messages */
 .error {
