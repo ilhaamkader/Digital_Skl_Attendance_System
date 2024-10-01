@@ -150,10 +150,10 @@ class AddStudentForm(FlaskForm):
     submit = SubmitField('Add Student')
 
 class UpdateAttendanceForm(FlaskForm):
-    date = StringField('Date', validators=[DataRequired()])
+    date = DateField('Date', validators=[DataRequired()], format='%Y-%m-%d', render_kw={"placeholder": "Select Date"})
     grade = SelectField('Grade', choices=[], validators=[DataRequired()],  render_kw={"placeholder": "Enter Grade"})
     division = SelectField('Division', choices=[], validators=[DataRequired()],  render_kw={"placeholder": "Enter Division"})
-    student_id = SelectField('StudentID', choices=[], validators=[DataRequired()], render_kw={"placeholder": "Student ID Number"})
+    student_id = SelectField('Student ID', choices=[], validators=[DataRequired()], render_kw={"placeholder": "Student ID Number"})
     attendance_status = SelectField('Attendance Status', choices=[('Present', 'Present'), ('Absent', 'Absent')], validators=[DataRequired()], render_kw={"placeholder": "Update Status"})
     update_attendance = SubmitField('Update Attendance')
     
