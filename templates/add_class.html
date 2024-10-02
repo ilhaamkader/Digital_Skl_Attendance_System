@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Add School Class</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
+  <body>
+    <h1>ADD SCHOOL CLASS</h1>
+    <div class="box">
+      <form method="POST">
+        {{ form.hidden_tag() }}
+        <!-- CSRF token -->
+
+        <!-- Educator Selection -->
+        <div class="inputBox">
+          {{ form.educator.label }} {{ form.educator(class="form-control") }}
+          <span>Educator</span>
+          <i></i>
+        </div>
+
+        <!-- Grade Selection -->
+        <div class="inputBox">
+          {{ form.grade.label }} {{ form.grade(class="form-control") }}
+          <span>Grade</span>
+          <i></i>
+        </div>
+
+        <!-- Division Selection -->
+        <div class="inputBox">
+          {{ form.division.label }} {{ form.division(class="form-control") }}
+          <span>Division</span>
+          <i></i>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="inputBox">
+          {{ form.submit(class="submit-button") }}
+          <!-- This generates the submit button -->
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

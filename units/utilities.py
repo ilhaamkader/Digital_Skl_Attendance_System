@@ -1,10 +1,17 @@
+from functools import wraps
 from pathlib import Path
-from flask import current_app
+from flask import current_app, session, redirect, url_for, flash
 from pathlib import Path
 from datetime import datetime
-import logging
+import string
+from random import choice, shuffle
+from sqlalchemy import event
+from sqlalchemy.orm import Session
 import json
 import re
+import os
+
+from units.models import Student
 
 
 def save_config_data(config_data):
@@ -99,7 +106,18 @@ def generate_username(email, user_type):
 
 # All code above has been tested and is safe
 
-'''
+def role_required(role):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Check if the user is logged in and has the required role
+            if 'user_type' not in session or session['user_type'] != role:
+                flash('You do not have permission to access this page.')
+                return redirect(url_for('login'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
 
 def generate_password():
     # Specify counts for letters, numbers, and symbols
@@ -126,48 +144,38 @@ def generate_password():
     return Randomised_String
 
 
-def update_grade_division_json(student):
-    filename = f"{student.grade}{student.division}.json"
-    filepath = os.path.join('json_data', filename)
 
-    if os.path.exists(filepath):
-        with open(filepath, 'r') as file:
-            data = json.load(file)
-    else:
-        data = []
-
-    data.append({
-        'first_name': student.first_name,
-        'last_name': student.last_name,
-        'id_num': student.id_num
-    })
-
-    with open(filepath, 'w') as file:
-        json.dump(data, file, indent=4)
+# read config json file for Grade and Division
+def read_json_file(file_path):
+    if not os.path.exists(file_path):
+        return []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            return []
 
 
-def update_parent_json(student):
-    parent = Parents.query.get(student.guardian_id)
-    class_row = Class.query.get(student.class_id)
-    grade = class_row.grade.grade_name
-    division = class_row.division.division_name
+def generate_daily_attendance(date, grade, division):
+    class_id = f"{grade}{division}"
+    filename = f"{date}_{class_id}_attendance.json"
+    filepath = os.path.join('attendance_records', filename)
 
-    filename = f"parent_{student.guardian_id}.json"
-    filepath = os.path.join('json_data', filename)
+    if not os.path.exists(filepath):
+        students = Students.query.filter_by(grade=grade, division=division).all()
+        attendance_data = []
 
-    if os.path.exists(filepath):
-        with open(filepath, 'r') as file:
-            data = json.load(file)
-    else:
-        data = []
+        for student in students:
+            attendance_data.append({
+                'student_id': student.id,
+                'first_name': student.first_name,
+                'last_name': student.last_name,
+                'attendance_status': 'Absent',
+                'exemption_status': 'None'
+            })
 
-    data.append({
-        'first_name': student.first_name,
-        'last_name': student.last_name,
-        'id_num': student.id_num,
-        'grade': grade,
-        'division': division
-    })
+        with open(filepath, 'w') as file:
+            json.dump(attendance_data, file, indent=4)
 
-    with open(filepath, 'w') as file:
-        json.dump(data, file, indent=4)'''
+    return filepath
+    

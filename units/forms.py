@@ -13,11 +13,11 @@ class Config(FlaskForm):
 
     grade_range_start = IntegerField(
         'Grade Range Start', 
-        validators=[DataRequired(), NumberRange(min=1, max=12)]
+        validators=[DataRequired(), NumberRange(min=0, max=12)] #min can not be 0 app doesnot work if its 0
     )
     grade_range_end = IntegerField(
         'Grade Range End', 
-        validators=[DataRequired(), NumberRange(min=1, max=12)]
+        validators=[DataRequired(), NumberRange(min=0, max=12)]
     )
     division_range_start = StringField(
         'Division Range Start', 
@@ -31,9 +31,11 @@ class Config(FlaskForm):
 
 
 class Login(FlaskForm):
-    username = EmailField('Username', validators=[validators.DataRequired()])
-    password = PasswordField('Password', validators=[validators.DataRequired()])
-    submit = SubmitField('Submit')
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    forgot_username = SubmitField('Forgot Username')
+    forgot_password = SubmitField('Forgot Password')
+    login = SubmitField('Login')
 
 
 class ForgotPassword(FlaskForm):
@@ -65,6 +67,21 @@ class AddSecretaryForm(FlaskForm):
     ])
     submit = SubmitField('Add Secretary')
 
+class AddEducatorForm(FlaskForm):
+    first_name = StringField('First Name', validators=[DataRequired(), Length(min=2, max=30)])
+    last_name = StringField('Last Name', validators=[DataRequired(), Length(min=2, max=30)])
+    rsa_id_num = StringField('RSA ID Number', validators=[
+        DataRequired(), 
+        Regexp(r'^\d{13}$', message='RSA ID must be exactly 13 digits')
+    ])
+    email = EmailField('Email', validators=[DataRequired(), Email()])
+    cell_number = StringField('Cell Number', validators=[
+        DataRequired(), 
+        Regexp(r'^\d{10}$', message='Cell number must be exactly 10 digits')
+    ])
+    submit = SubmitField('Add Educator')
+
+
 class AddParentForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired(), Length(min=2, max=50)])
     last_name = StringField('Last Name', validators=[DataRequired(), Length(min=2, max=50)])
@@ -89,14 +106,45 @@ class AddParentForm(FlaskForm):
 
     submit = SubmitField('Add Parent')
 
-
-class AddStudentForm(FlaskForm):
-    first_name = StringField('First Name', validators=[DataRequired(), Length(min=2, max=50)])
-    last_name = StringField('Last Name', validators=[DataRequired(), Length(min=2, max=50)])
-    id_num = StringField('ID Number', validators=[DataRequired(), Length(min=13, max=13)])
-    guardian = SelectField('Guardian', choices=[], coerce=int, validators=[DataRequired()])
+class AddSchoolClass(FlaskForm):
+    educator = SelectField('Educator', choices=[], validators=[DataRequired()])
     grade = SelectField('Grade', choices=[], validators=[DataRequired()])
     division = SelectField('Division', choices=[], validators=[DataRequired()])
+    submit = SubmitField('Add Class')
+
+class AddStudentForm(FlaskForm):
+    first_name = StringField(
+        'First Name',
+        validators=[
+            DataRequired(message="First name is required."),
+            Length(max=100, message="First name cannot exceed 100 characters.")
+        ]
+    )
+    last_name = StringField(
+        'Last Name',
+        validators=[
+            DataRequired(message="Last name is required."),
+            Length(max=100, message="Last name cannot exceed 100 characters.")
+        ]
+    )
+    rsa_id_number = StringField(
+        'RSA ID Number',
+        validators=[
+            DataRequired(message="RSA ID number is required."),
+            Length(min=13, max=13, message="RSA ID number must be exactly 13 characters."),
+            Regexp(r'^\d{13}$', message="RSA ID number must contain only digits.")
+        ]
+    )
+    guardian_id = SelectField(
+        'Guardian',
+        coerce=int,
+        validators=[DataRequired(message="Please select a parent/guardian.")]
+    )
+    school_class_id = SelectField(
+        'Grade and Division',
+        coerce=int,
+        validators=[DataRequired(message="Please select a grade and division.")]
+    )
     submit = SubmitField('Add Student')
 
 class ExemptionForm(FlaskForm):
@@ -113,3 +161,24 @@ class GenerateClassListForm(FlaskForm):
     grade = SelectField('Grade', choices=[], validators=[DataRequired()])
     division = SelectField('Division', choices=[], validators=[DataRequired()])
     submit = SubmitField('Generate List')
+
+class ManageProfileForm(FlaskForm):
+    current_password = PasswordField('Current Password', 
+                                     validators=[DataRequired()])
+    
+    new_password = PasswordField('New Password', 
+                                 validators=[DataRequired(), 
+                                             Length(min=6, max=50, message="Password must be between 6 and 50 characters.")])
+    
+    confirm_password = PasswordField('Confirm New Password', 
+                                     validators=[DataRequired(), 
+                                                 EqualTo('new_password', message="Passwords must match.")])
+    
+    # Update Mobile Number Section (conditional on role)
+    mobile_number = StringField('Mobile Number', 
+                                validators=[Regexp(r'^\d{10}$', 
+                                                   message="Mobile number must be exactly 10 digits.")])
+    
+    # Submit buttons
+    change_password = SubmitField('Change Password')
+    update_mobile = SubmitField('Update Mobile Number')

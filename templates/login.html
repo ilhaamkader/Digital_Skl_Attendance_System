@@ -1,0 +1,35 @@
+{% extends 'base.html' %} {% block title %} Login Form {% endblock %} {% block
+content %}
+<h1>WELCOME!</h1>
+<div class="box">
+  <form method="POST" action="{{ url_for('login') }}" autocomplete="off">
+    {{ form.hidden_tag() }}
+    <h2>SIGN IN</h2>
+
+    <!-- Username Input -->
+    <div class="inputBox">
+      {{ form.username.label }} {{ form.username(class="form-control",
+      placeholder="Enter your Username") }} {% if form.username.errors %}
+      <span class="error">{{ form.username.errors[0] }}</span>
+      {% endif %}
+    </div>
+
+    <!-- Forgot Username Link -->
+    <div class="links">{{ form.forgot_username(class="btn-link") }}</div>
+
+    <!-- Password Input -->
+    <div class="inputBox">
+      {{ form.password.label }} {{ form.password(class="form-control",
+      placeholder="Enter your password") }} {% if form.password.errors %}
+      <span class="error">{{ form.password.errors[0] }}</span>
+      {% endif %}
+    </div>
+
+    <!-- Forgot Password Link -->
+    <div class="links">{{ form.forgot_password(class="btn-link") }}</div>
+
+    <!-- Login Button -->
+    <div class="inputBox">{{ form.login(class='login-button') }}</div>
+  </form>
+</div>
+{% endblock %}

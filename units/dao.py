@@ -1,31 +1,35 @@
 from .models import Admin, Secretary, Educator, Guardian, Student, SchoolClass, AttendanceRecord, db
 from sqlalchemy import text
 from flask import current_app
+from werkzeug.security import check_password_hash
 
 class UserDAO:
     @staticmethod
     def get_user_by_username(username):
         # Try to find the user in the Admin, Secretary, Educator, or Guardian tables
-        user = Admin.query.filter_by(admin_username=username).first()
-        if not user:
-            user = Secretary.query.filter_by(secretary_username=username).first()
-        if not user:
-            user = Educator.query.filter_by(educator_username=username).first()
-        if not user:
-            user = Guardian.query.filter_by(guardian_username=username).first()
+        if username.startswith('a'):
+            user = Admin.query.filter_by(username=username).first()
+        elif username.startswith('s'):
+            user = Secretary.query.filter_by(username=username).first()
+        elif username.startswith('e'):
+            user = Educator.query.filter_by(username=username).first()
+        elif username.startswith('p'):
+            user = Guardian.query.filter_by(username=username).first()
+        else:
+            user = None
         return user
 
     @staticmethod
     def check_password(user, password):
         # Check password based on the user type
         if isinstance(user, Admin):
-            return user.admin_password == password
+            return check_password_hash(user.password, password)
         elif isinstance(user, Secretary):
-            return user.secretary_password == password
+            return check_password_hash(user.password, password)
         elif isinstance(user, Educator):
-            return user.educator_password == password
+            return check_password_hash(user.password, password)
         elif isinstance(user, Guardian):
-            return user.guardian_password == password
+            return check_password_hash(user.password, password)
         return False
 
 class AdminDAO:
@@ -39,7 +43,7 @@ class AdminDAO:
 
     @staticmethod
     def add_admin(username, password, email):
-        new_admin = Admin(admin_username=username, admin_password=password, admin_email=email)
+        new_admin = Admin(username=username, password=password, email=email)
         db.session.add(new_admin)
         db.session.commit()
         print("Admin added:", new_admin)  # Debug output
@@ -63,13 +67,13 @@ class SecretaryDAO:
     @staticmethod
     def add_secretary(username, password, first_name, last_name, email, cell_number, rsa_id_num):
         new_secretary = Secretary(
-            secretary_username=username,
-            secretary_password=password,
-            secretary_first_name=first_name,
-            secretary_last_name=last_name,
-            secretary_email=email,
-            secretary_cell_number=cell_number,
-            secretary_rsa_id_num=rsa_id_num
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            cell_number=cell_number,
+            rsa_id_num=rsa_id_num
         )
         db.session.add(new_secretary)
         db.session.commit()
@@ -91,15 +95,15 @@ class EducatorDAO:
         return Educator.query.get(educator_id)
 
     @staticmethod
-    def add_educator(username, password, first_name, last_name, email, cell_num, rsa_id_num):
+    def add_educator(username, password, first_name, last_name, email, cell_number, rsa_id_num):
         new_educator = Educator(
-            educator_username=username,
-            educator_password=password,
-            educator_first_name=first_name,
-            educator_last_name=last_name,
-            educator_email=email,
-            educator_cell_num=cell_num,
-            educator_rsa_id_num=rsa_id_num
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            cell_number=cell_number,
+            rsa_id_num=rsa_id_num
         )
         db.session.add(new_educator)
         db.session.commit()
@@ -121,16 +125,21 @@ class GuardianDAO:
         return Guardian.query.get(guardian_id)
 
     @staticmethod
-    def add_guardian(username, password, first_name, last_name, email, cell_number, address, rsa_id_number, dependants_list):
+    def add_guardian(username, password, first_name, last_name, email, cell_number, address, rsa_id_number, dependants_list=None):
+
+        # Set dependants_list to an empty list if not provided
+        if dependants_list is None:
+            dependants_list = {}  # or {} depending on your requirement
+
         new_guardian = Guardian(
-            guardian_username=username,
-            guardian_password=password,
-            guardian_first_name=first_name,
-            guardian_last_name=last_name,
-            guardian_email=email,
-            guardian_cell_number=cell_number,
-            guardian_address=address,
-            guardian_rsa_id_number=rsa_id_number,
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            cell_number=cell_number,
+            address=address,
+            rsa_id_number=rsa_id_number,
             guardian_dependants_list=dependants_list
         )
         db.session.add(new_guardian)
@@ -155,9 +164,9 @@ class StudentDAO:
     @staticmethod
     def add_student(first_name, last_name, rsa_id_number, guardian_id):
         new_student = Student(
-            student_first_name=first_name,
-            student_last_name=last_name,
-            student_rsa_id_number=rsa_id_number,
+            first_name=first_name,
+            last_name=last_name,
+            rsa_id_number=rsa_id_number,
             guardian_id=guardian_id
         )
         db.session.add(new_student)
@@ -180,9 +189,11 @@ class SchoolClassDAO:
         return SchoolClass.query.get(class_id)
 
     @staticmethod
-    def add_class(educator_id, class_students):
+    def add_class(educator_id,grade, division, class_students):
         new_class = SchoolClass(
             educator_id=educator_id,
+            grade=grade,
+            division=division,
             class_students=class_students
         )
         db.session.add(new_class)
@@ -220,6 +231,8 @@ class AttendanceRecordDAO:
         if record:
             db.session.delete(record)
             db.session.commit()
+
+
 
 # Utility class for handling database script execution
 class DatabaseUtilityDAO:

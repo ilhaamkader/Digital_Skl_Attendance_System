@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}School Attendance System{% endblock %}</title>    
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <ul>
+            <li><a href="{{ url_for('setup') }}"><img src="{{ url_for('static', filename='school_attendance.png') }}" alt="Logo" class="navbar-logo"></a></li>
+            <li><a href="{{ url_for('login') }}">LOG IN</a></li>
+            <li><a href="#">CLASS LIST</a></li>
+            <li><a href="#">DASHBOARD</a></li>
+        </ul>
+    </nav>
+
+    <!-- Content -->
+    <div id="content">
+        {% block content %}
+        <!-- Page-specific content will go here -->
+        {% endblock %}
+    </div>
+    
+</body>
+</html>
