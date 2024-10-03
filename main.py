@@ -1,3 +1,6 @@
+from wtforms import BooleanField
+from flask_bootstrap import Bootstrap5
+from units.forms import Config, Login, ForgotPassword, ResetPassword, AddSecretaryForm, AddParentForm, AddStudentForm, UpdateAttendanceForm, AddEducatorForm, ExemptionForm, GenerateClassListForm, ManageProfileForm, ClassListForm
 from flask import Flask, jsonify, redirect, session, url_for, request, flash, render_template, current_app
 from units import db, init_app, forms
 from units.dao import AdminDAO, UserDAO, SecretaryDAO, EducatorDAO, GuardianDAO, SchoolClassDAO#, DatabaseUtilityDAO  Added UserDAO for login
@@ -12,6 +15,7 @@ import os
 from werkzeug.security import generate_password_hash
 
 app = Flask(__name__, instance_relative_config=True)
+bootstrap = Bootstrap5(app)
 
 def initialize_server():
     # Ensure the instance folder is created at the root level
@@ -61,7 +65,7 @@ def setup():
     if is_configured():
         return redirect(url_for('login'))
     
-    form = forms.Config()
+    form = Config()
 
     if form.validate_on_submit():
         email = form.email.data
@@ -93,12 +97,12 @@ def setup():
         flash('Setup completed successfully. Please log in.', 'success')
         return redirect(url_for('login'))
     
-    return render_template('setup.html', form=form)
+    return render_template('config.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    form = forms.Login()
-    if form.validate_on_submit():
+    form = Login()
+    if request.method == 'POST' and form.validate_on_submit(): # post code added from github
         username = form.username.data.strip()
         password = form.password.data
 
@@ -136,6 +140,14 @@ def login():
 
     return render_template('login.html', form=form)
 
+@app.route('/forgot', methods=['GET', 'POST'])
+def forgot():
+    forgot_form = ForgotPassword()
+    if request.method == 'POST' and forgot_form.validate_on_submit():
+        flash('Recovery email sent!', 'success') # Logic for reset password link is missing
+        return redirect(url_for('login'))
+    return render_template('forgot-user-pass.html', form=forgot_form)
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -145,95 +157,33 @@ def logout():
 @app.route('/manage_profile', methods=['GET', 'POST'])
 @login_required
 def manage_profile():
-    username = current_user.username
-    user = None
-    role = None
-
-    # Determine user role based on username prefix and query the correct field
-    if username.startswith('a'):
-        user = Admin.query.filter_by(username=username).first()
-        role = 'admin'
-    elif username.startswith('s'):
-        user = Secretary.query.filter_by(username=username).first()
-        role = 'secretary'
-    elif username.startswith('e'):
-        user = Educator.query.filter_by(username=username).first()
-        role = 'educator'
-    elif username.startswith('p'):
-        user = Guardian.query.filter_by(username=username).first()
-        role = 'parent'
-    else:
-        flash('Invalid user role or username', 'danger')
-        return redirect(url_for('home'))
-
-    if not user:
-        flash('User not found', 'danger')
-        return redirect(url_for('home'))
-
-    # Instantiate the form
-    form = forms.ManageProfileForm()
-
-    if form.validate_on_submit():
-        # Handle Change Password
-        if form.change_password.data:
-            current_password = form.current_password.data
-            new_password = form.new_password.data
-            confirm_password = form.confirm_password.data
-
-            # Determine the correct password field based on role
-            if role == 'admin':
-                password_field = user.password
-            elif role == 'secretary':
-                password_field = user.password
-            elif role == 'educator':
-                password_field = user.password
-            elif role == 'parent':
-                password_field = user.password
-            else:
-                password_field = None
-
-            if not password_field or not check_password_hash(password_field, current_password):
-                flash("Current password is incorrect", "danger")
-            elif new_password != confirm_password:
-                flash("New password and confirmation don't match", "danger")
-            else:
-                # Update the password based on role
-                if role == 'admin':
-                    user.password = generate_password_hash(new_password)
-                elif role == 'secretary':
-                    user.password = generate_password_hash(new_password)
-                elif role == 'educator':
-                    user.password = generate_password_hash(new_password)
-                elif role == 'parent':
-                    user.password = generate_password_hash(new_password)
-                db.session.commit()
-                flash("Password updated successfully", "success")
-
-        # Handle Update Mobile Number
-        if form.update_mobile.data and role in ['secretary', 'educator', 'parent']:
-            new_mobile_number = form.mobile_number.data
-            user.cell_number = new_mobile_number
-            db.session.commit()
-            flash("Mobile number updated successfully", "success")
-
+    manage_profile_form = ManageProfileForm()
+    if request.method == 'POST' and manage_profile_form.validate_on_submit():
+        flash('Profile updated successfully!', 'success')
         return redirect(url_for('manage_profile'))
+    return render_template('manage-profile.html', form=manage_profile_form)
 
-    return render_template('manage_profile.html', user=user, role=role, form=form)
-
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    change_password_form = ResetPassword()
+    if request.method == 'POST' and change_password_form.validate_on_submit():
+        flash('Password updated successfully!', 'success')
+        return redirect(url_for('manage_profile'))
+    return render_template('change-password.html', form=change_password_form)
 
 # Admin routes ----------------------------------------------------------------------------------------------------
 
 @app.route('/admin_dashboard')
 @role_required('a')  # Only admin users can access this page
 def admin_dashboard():
-    return render_template('admin_dashboard.html') 
+    return render_template('admin-dashboard.html') 
 
 @app.route('/add_secretary', methods=['GET', 'POST'])
 @role_required('a')  # Assuming 'admin' is the role stored in session for admins
 def add_secretary():
-    form = forms.AddSecretaryForm()
+    form = AddSecretaryForm()
 
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
         first_name = form.first_name.data
         last_name = form.last_name.data
         rsa_id_num = form.rsa_id_num.data
@@ -265,17 +215,17 @@ def add_secretary():
                     "Thank you.")
         mail.send(msg)
 
-        flash('Secretary successfully added and email sent.', 'success')
+        flash('Secretary added successfully!', 'success')
         return redirect(url_for('admin_dashboard'))
 
-    return render_template('add_secretary.html', form=form)
+    return render_template('add-secretary.html', form=form)
 
 @app.route('/add_educator', methods=['GET', 'POST'])
 @role_required('a')
 def add_educator():
-    form = forms.AddEducatorForm()
+    form = AddEducatorForm()
 
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
         first_name = form.first_name.data
         last_name = form.last_name.data
         rsa_id_num = form.rsa_id_num.data
@@ -306,12 +256,32 @@ def add_educator():
                     "Thank you.")
         mail.send(msg)
 
-        flash('Educator successfully added and email sent.', 'success')
+        flash('Educator added successfully!', 'success')
         return redirect(url_for('admin_dashboard'))
 
-    return render_template('add_educator.html', form=form)
+    return render_template('add-educator.html', form=form)
 
 # Add a route to test DAO methods
+# Ashlee See if this can be completed, use the dao file in units when doing this part
+# This logic needs to be added to all db tables
+
+@app.route('/secretaries', methods= ['GET'])
+def getAllSec():
+    sec = SecretaryDAO.get_all_secretaries()
+    return jsonify([{
+        'username' : secre.username,
+        'email' : secre.email
+    } for secre in sec])
+
+@app.route('/students', methods=['GET'])
+def get_all_students():
+    students = StudentDAO.get_all_students()
+    return jsonify([{
+        'first_name': student.first_name,
+        'last_name': student.last_name,
+        'guardian_id': student.guardian_id
+    } for student in students])
+
 @app.route('/admins', methods=['GET'])
 @login_required
 def get_admins():
@@ -327,7 +297,7 @@ def get_admins():
 @app.route('/secretary_dashboard')
 @role_required('s')
 def secretary_dashboard():
-    return render_template('secretary_dashboard.html')
+    return render_template('secretary-dashboard.html')
 
 @app.route('/add_class', methods=['GET', 'POST']) # the validation of 1 educator per a class needs to be implemented
 @role_required('s')
@@ -378,9 +348,9 @@ def add_class():
 @app.route('/add_parent', methods=['GET', 'POST'])
 @role_required('s')
 def add_parent():
-    form = forms.AddParentForm()  
+    form = AddParentForm()  
 
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
         first_name = form.first_name.data
         last_name = form.last_name.data
         rsa_id_num = form.rsa_id_num.data
@@ -414,16 +384,16 @@ def add_parent():
                     "Thank you.")
         mail.send(msg)
 
-        flash('Parent successfully added and email sent.', 'success')
+        flash('Parent/Guardian added successfully!', 'success')
         return redirect(url_for('secretary_dashboard'))
 
-    return render_template('add_parent.html', form=form)
+    return render_template('add-parent.html', form=form)
 
 
-@app.route('/add_student', methods=['GET', 'POST'])
+@app.route('/add_student', methods=['GET', 'POST']) # Requires urgent attention!!!, redo Entire Logic
 @role_required('s')
 def add_student():
-    form = forms.AddStudentForm()
+    form = AddStudentForm()
 
     # Populate the guardian choices
     form.guardian_id.choices = [
@@ -511,14 +481,14 @@ def add_student():
         db.session.commit()
 
         flash('Student added successfully!', 'success')
-        return redirect(url_for('add_student'))
+        return redirect(url_for('add_student')) # Currently going to display form again, can switch to display all students in student table
 
-    return render_template('add_student.html', form=form)
+    return render_template('add-student.html', form=form)
 
 
 @app.route('/update_attendance', methods=['GET', 'POST'])
 def update_attendance():
-    form = forms.UpdateAttendanceForm()
+    form = UpdateAttendanceForm() # Ensure its added in forms.py
 
     form.grade.choices = [(grade.id, grade.name) for grade in Grades.query.all()]
     form.division.choices = [(division.id, division.name) for division in Divisions.query.all()]
@@ -528,7 +498,7 @@ def update_attendance():
         students = Students.query.filter_by(grade=form.grade.data, division=form.division.data).all()
         form.student_id.choices = [(student.id, f"{student.first_name} {student.last_name}") for student in students]
         
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
         date_str = form.date.data.strftime('%Y-%m-%d')
         class_id = f"{form.grade.data}{form.division.data}"
         filename = f"{date_str}_{class_id}_attendance.json"
@@ -551,25 +521,63 @@ def update_attendance():
         else:
             flash('Attendance record not found for the selected class and date.', 'danger')
 
-    return render_template('update_attendance.html', form=form)
+    return render_template('update-attendance.html', form=form)
 
 
 # Educator routes --------------------------------------------------------------------------------------------------
 @app.route('/educator_dashboard')
 @role_required('e')
 def educator_dashboard():
-    return render_template('educator_dashboard.html')
+    # This is just sample data; replace it with your actual data source.
+    class_list = [
+        {'name': 'Student 1'},
+        {'name': 'Student 2'},
+        {'name': 'Student 3'},
+        {'name': 'Student 4'},
+        {'name': 'Student 5'},
+        {'name': 'Student 6'}
+    ]
+    return render_template('educator-dashboard.html', class_list=class_list)
 
+@app.route('/class_list_generated', methods=['GET', 'POST'])
+def class_list_generated():
+    # Example data
+    date = "2024-09-25"
+    grade = "Grade 10"
+    division = "A"
+    educator = "Ms. Smith"
+    students = [
+        {"student_id": 1001, "first_name": "John", "last_name": "Doe", "leave_status": "Present"},
+        {"student_id": 1002, "first_name": "Jane", "last_name": "Smith", "leave_status": "Leave"}
+    ]
+
+    class DynamicClassListForm(ClassListForm):
+        pass
+
+    # Dynamically add attendance fields for each student
+    for student in students:
+        field_name = f'attendance_{student["student_id"]}'
+    form = DynamicClassListForm()
+
+    if form.validate_on_submit():
+        # Handle form submission
+        for student in students:
+            attendance_field = getattr(form, f'attendance_{student["student_id"]}')
+            print(f'Student {student["student_id"]} attendance: {attendance_field.data}')
+
+        return redirect(url_for('generate-class-list.html'))
+
+    return render_template('class-list.html', form=form, date=date, grade=grade, division=division, educator=educator, students=students)
 
 @app.route('/generate_class_list', methods=['GET', 'POST'])
 def generate_class_list():
-    form = forms.GenerateClassListForm()
+    form = GenerateClassListForm()
 
     # Populate Grade and Division dropdowns
     form.grade.choices = [(grade.id, grade.name) for grade in Grades.query.all()]
     form.division.choices = [(division.id, division.name) for division in Divisions.query.all()]
 
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
         date = form.date.data
         grade = form.grade.data
         division = form.division.data
@@ -598,22 +606,22 @@ def generate_class_list():
                 json.dump(attendance_data, file, indent=4)
 
         # Redirect to the class list page to mark attendance
+        flash('Class list generated successfully!', 'success')
         return redirect(url_for('mark_attendance', date=date_str, class_id=class_id))
 
-    return render_template('generate_class_list.html', form=form)
-
+    return render_template('generate-class-list.html', form=form)
 
 
 # Parent routes ---------------------------------------------------------------------------------------------------
 @app.route('/parent_dashboard')
 @role_required('p')  # Only admin users can access this page
 def parent_dashboard():
-    return render_template('parent_dashboard.html') 
+    return render_template('parent-dashboard.html') 
    
 
 @app.route('/add_attendance_exemption', methods=['GET', 'POST'])
 def add_attendance_exemption():
-    form = forms.ExemptionForm()
+    form = ExemptionForm()
 
     form.grade.choices = [(grade.id, grade.name) for grade in Grades.query.all()]
     form.division.choices = [(division.id, division.name) for division in Divisions.query.all()]
@@ -622,7 +630,7 @@ def add_attendance_exemption():
         form.student_id.choices = [(student.id, f"{student.first_name} {student.last_name}") 
                                    for student in Students.query.filter_by(grade=form.grade.data, division=form.division.data).all()]
 
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
         start_date = form.start_date.data
         end_date = form.end_date.data
         grade = form.grade.data
@@ -659,7 +667,7 @@ def add_attendance_exemption():
         flash('Exemption successfully added.', 'success')
         return redirect(url_for('secretary_dashboard'))
 
-    return render_template('add_attendance_exemption.html', form=form)
+    return render_template('add-attendance-exemption.html', form=form)
 
  
 

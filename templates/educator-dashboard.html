@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Educator Dashboard{% endblock %}
+
+{% block content %}
+<h1>EDUCATOR DASHBOARD</h1>
+
+<div class="box">
+    <form method="POST">
+        <h2>CLASS LIST</h2>
+            <div class="inputBox">
+                {% for student in class_list %}
+                    <p>{{ student.name }}</p>
+                {% else %}
+                    <p>No students assigned</p>
+                {% endfor %}
+            </div>
+    </form>
+    </div>
+</div>
+<input type="button" value="Manage Profile" onclick="window.location.href='{{ url_for('manage_profile') }}'">
+
+{% endblock %}

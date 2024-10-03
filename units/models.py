@@ -53,10 +53,7 @@ class Guardian(db.Model, UserMixin):
     cell_number: Mapped[str] = mapped_column(unique=True)
     address: Mapped[str]
     rsa_id_number: Mapped[str] = mapped_column(unique=True)
-    guardian_dependants_list: Mapped[dict] = mapped_column(JSON, default=dict)
-
-    def get_id(self):
-        return str(self.guardian_id)
+    guardian_dependants_list: Mapped[dict] = mapped_column(JSON)
 
     dependants: Mapped[list["Student"]] = relationship(back_populates="guardian")
 

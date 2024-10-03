@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form %}
+
+{% block title %}Account Recovery{% endblock %}
+
+{% block content %}
+<h1>ACCOUNT RECOVERY</h1>
+    <div class="box">
+        <h2>FORGOT PASSWORD/USERNAME</h2>
+
+        <div class="inputBox">
+            {{ render_form(form) }}
+        </div>
+
+    </div>
+{% endblock %}

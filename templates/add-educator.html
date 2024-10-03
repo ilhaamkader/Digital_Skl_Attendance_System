@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form %}
+
+{% block title %}Add Educator{% endblock %}
+
+{% block content %}
+<h1>EDUCATOR</h1>
+    <div class="box">
+        <h2>ENTER YOUR INFORMATION</h2>
+        <div class="inputBox">
+            {{ render_form(form) }}
+        </div>
+    </div>
+{% endblock %}

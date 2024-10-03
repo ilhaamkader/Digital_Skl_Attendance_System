@@ -125,11 +125,7 @@ class GuardianDAO:
         return Guardian.query.get(guardian_id)
 
     @staticmethod
-    def add_guardian(username, password, first_name, last_name, email, cell_number, address, rsa_id_number, dependants_list=None):
-
-        # Set dependants_list to an empty list if not provided
-        if dependants_list is None:
-            dependants_list = {}  # or {} depending on your requirement
+    def add_guardian(username, password, first_name, last_name, email, cell_number, address, rsa_id_number, dependants_list):
 
         new_guardian = Guardian(
             username=username,
