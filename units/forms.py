@@ -171,3 +171,9 @@ class GenerateClassListForm(FlaskForm):
     grade = SelectField('Grade', choices=[], validators=[DataRequired()], render_kw={"placeholder": "Enter Grade"})
     division = SelectField('Division', choices=[], validators=[DataRequired()], render_kw={"placeholder": "Enter Division"})
     submit = SubmitField('Generate List')
+    
+class ClassListForm(FlaskForm):
+    date = StringField('Date', validators=[DataRequired()], render_kw={"readonly": True})
+    grade_division = StringField('Grade & Division', validators=[DataRequired()], render_kw={"readonly": True})
+    educator = StringField('Form Educator', validators=[DataRequired()], render_kw={"readonly": True})
+    submit = SubmitField('Submit Attendance')

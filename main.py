@@ -1,9 +1,10 @@
 from flask import Flask, jsonify, redirect, url_for, request, flash, render_template
+from wtforms import BooleanField
 from units import db, init_app
 from flask_bootstrap import Bootstrap5
 from units.dao import AdminDAO, UserDAO, DatabaseUtilityDAO  # Added UserDAO for login
 from flask_login import login_user, logout_user, login_required, current_user
-from units.forms import Config, Login, ForgotPassword, ResetPassword, AddSecretaryForm, AddParentForm, AddStudentForm, UpdateAttendanceForm, AddEducatorForm, ExemptionForm, GenerateClassListForm, ManageProfileForm
+from units.forms import Config, Login, ForgotPassword, ResetPassword, AddSecretaryForm, AddParentForm, AddStudentForm, UpdateAttendanceForm, AddEducatorForm, ExemptionForm, GenerateClassListForm, ManageProfileForm, ClassListForm
 import os
 
 app = Flask(__name__, instance_relative_config=True)
@@ -166,6 +167,36 @@ def generate_class_list():
         flash('Class list generated successfully!', 'success')
         return redirect(url_for('educator_dashboard'))
     return render_template('generate-class-list.html', form=generate_class_list_form)
+
+@app.route('/class_list_generated', methods=['GET', 'POST'])
+def class_list_generated():
+    # Example data
+    date = "2024-09-25"
+    grade = "Grade 10"
+    division = "A"
+    educator = "Ms. Smith"
+    students = [
+        {"student_id": 1001, "first_name": "John", "last_name": "Doe", "leave_status": "Present"},
+        {"student_id": 1002, "first_name": "Jane", "last_name": "Smith", "leave_status": "Leave"}
+    ]
+
+    class DynamicClassListForm(ClassListForm):
+        pass
+
+    # Dynamically add attendance fields for each student
+    for student in students:
+        field_name = f'attendance_{student["student_id"]}'
+    form = DynamicClassListForm()
+
+    if form.validate_on_submit():
+        # Handle form submission
+        for student in students:
+            attendance_field = getattr(form, f'attendance_{student["student_id"]}')
+            print(f'Student {student["student_id"]} attendance: {attendance_field.data}')
+
+        return redirect(url_for('generate-class-list.html'))
+
+    return render_template('class-list.html', form=form, date=date, grade=grade, division=division, educator=educator, students=students)
 
 # Parent Dashboard Route
 @app.route('/parent_dashboard')
