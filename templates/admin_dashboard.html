@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <h1>ADMIN DASHBOARD</h1>
+    <div class="box">
+      <form>
+        <h2>STUDENTS</h2>
+        <div class="inputBox">
+          <p>123456</p>
+        </div>
+        <h2>TEACHERS</h2>
+        <div class="inputBox">
+          <p>122238</p>
+        </div>
+        <h2>ADMIN</h2>
+        <div class="inputBox">
+          <p>123456</p>
+        </div>
+      </form>
+    </div>
+
+    <div class="buttons">
+      <input
+        type="button"
+        value="Add Secretary"
+        onclick="location.href='{{ url_for('add_secretary') }}'"
+      />
+      <input
+        type="button"
+        value="Add Educator"
+        onclick="location.href='{{ url_for('add_educator') }}'"
+      />
+      <input
+        type="button"
+        value="Manage Profile"
+        onclick="location.href='{{ url_for('manage_profile') }}'"
+      />
+    </div>
+  </body>
+</html>

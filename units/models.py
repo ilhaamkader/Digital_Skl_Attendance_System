@@ -7,9 +7,9 @@ from flask_login import UserMixin  # Added UserMixin for Flask-Login
 class Admin(db.Model, UserMixin):
     __tablename__ = 'admin'
     admin_id: Mapped[int] = mapped_column(primary_key=True)
-    admin_username: Mapped[str] = mapped_column(unique=True)
-    admin_password: Mapped[str]
-    admin_email: Mapped[str] = mapped_column(unique=True)
+    username: Mapped[str] = mapped_column(unique=True)
+    password: Mapped[str]
+    email: Mapped[str] = mapped_column(unique=True)
 
     def get_id(self):
         return str(self.admin_id)
@@ -17,13 +17,13 @@ class Admin(db.Model, UserMixin):
 class Secretary(db.Model, UserMixin):
     __tablename__ = 'secretary'
     secretary_id: Mapped[int] = mapped_column(primary_key=True)
-    secretary_username: Mapped[str] = mapped_column(unique=True)
-    secretary_password: Mapped[str]
-    secretary_first_name: Mapped[str]
-    secretary_last_name: Mapped[str]
-    secretary_email: Mapped[str] = mapped_column(unique=True)
-    secretary_cell_number: Mapped[str] = mapped_column(unique=True)
-    secretary_rsa_id_num: Mapped[str] = mapped_column(unique=True)
+    username: Mapped[str] = mapped_column(unique=True)
+    password: Mapped[str]
+    first_name: Mapped[str]
+    last_name: Mapped[str]
+    email: Mapped[str] = mapped_column(unique=True)
+    cell_number: Mapped[str] = mapped_column(unique=True)
+    rsa_id_num: Mapped[str] = mapped_column(unique=True)
 
     def get_id(self):
         return str(self.secretary_id)
@@ -31,13 +31,13 @@ class Secretary(db.Model, UserMixin):
 class Educator(db.Model, UserMixin):
     __tablename__ = 'educator'
     educator_id: Mapped[int] = mapped_column(primary_key=True)
-    educator_username: Mapped[str] = mapped_column(unique=True)
-    educator_password: Mapped[str]
-    educator_first_name: Mapped[str]
-    educator_last_name: Mapped[str]
-    educator_email: Mapped[str] = mapped_column(unique=True)
-    educator_cell_num: Mapped[str] = mapped_column(unique=True)
-    educator_rsa_id_num: Mapped[str] = mapped_column(unique=True)
+    username: Mapped[str] = mapped_column(unique=True)
+    password: Mapped[str]
+    first_name: Mapped[str]
+    last_name: Mapped[str]
+    email: Mapped[str] = mapped_column(unique=True)
+    cell_number: Mapped[str] = mapped_column(unique=True)
+    rsa_id_num: Mapped[str] = mapped_column(unique=True)
 
     def get_id(self):
         return str(self.educator_id)
@@ -45,15 +45,15 @@ class Educator(db.Model, UserMixin):
 class Guardian(db.Model, UserMixin):
     __tablename__ = 'guardian'
     guardian_id: Mapped[int] = mapped_column(primary_key=True)
-    guardian_username: Mapped[str] = mapped_column(unique=True)
-    guardian_password: Mapped[str]
-    guardian_first_name: Mapped[str]
-    guardian_last_name: Mapped[str]
-    guardian_email: Mapped[str] = mapped_column(unique=True)
-    guardian_cell_number: Mapped[str] = mapped_column(unique=True)
-    guardian_address: Mapped[str]
-    guardian_rsa_id_number: Mapped[str] = mapped_column(unique=True)
-    guardian_dependants_list: Mapped[dict] = mapped_column(JSON)
+    username: Mapped[str] = mapped_column(unique=True)
+    password: Mapped[str]
+    first_name: Mapped[str]
+    last_name: Mapped[str]
+    email: Mapped[str] = mapped_column(unique=True)
+    cell_number: Mapped[str] = mapped_column(unique=True)
+    address: Mapped[str]
+    rsa_id_number: Mapped[str] = mapped_column(unique=True)
+    guardian_dependants_list: Mapped[dict] = mapped_column(JSON, default=dict)
 
     def get_id(self):
         return str(self.guardian_id)
@@ -63,9 +63,9 @@ class Guardian(db.Model, UserMixin):
 class Student(db.Model):
     __tablename__ = 'student'
     student_id: Mapped[int] = mapped_column(primary_key=True)
-    student_first_name: Mapped[str]
-    student_last_name: Mapped[str]
-    student_rsa_id_number: Mapped[str] = mapped_column(unique=True)
+    first_name: Mapped[str]
+    last_name: Mapped[str]
+    rsa_id_number: Mapped[str] = mapped_column(unique=True)
 
     # Foreign key
     guardian_id: Mapped[int] = mapped_column(ForeignKey("guardian.guardian_id"))
@@ -74,6 +74,8 @@ class Student(db.Model):
 class SchoolClass(db.Model):  # Changed from Class to SchoolClass
     __tablename__ = 'class'
     class_id: Mapped[int] = mapped_column(primary_key=True)
+    grade: Mapped[int] = mapped_column(Integer, nullable=False)
+    division: Mapped[str] = mapped_column(String(1), nullable=False)  
     class_students: Mapped[dict] = mapped_column(JSON)
 
     # Foreign keys
@@ -90,3 +92,4 @@ class AttendanceRecord(db.Model):
     # Foreign key
     class_id: Mapped[int] = mapped_column(ForeignKey("class.class_id"))
     class_: Mapped["SchoolClass"] = relationship(back_populates="attendance_record")  # Updated the relationship
+

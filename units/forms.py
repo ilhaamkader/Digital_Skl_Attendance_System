@@ -34,9 +34,9 @@ class Config(FlaskForm):
         'Division Range End',
         validators=[DataRequired(), Length(min=1, max=1)],
                 render_kw={"placeholder": "Enter Division End"}
-
     )
     submit = SubmitField('Submit')
+
 
 class Login(FlaskForm):
     username = StringField('Username', validators=[DataRequired()], render_kw={"placeholder": "Enter your username"})
@@ -148,6 +148,14 @@ class AddStudentForm(FlaskForm):
     grade = SelectField('Grade', choices=[], validators=[DataRequired()],  render_kw={"placeholder": "Enter Grade"})
     division = SelectField('Division', choices=[], validators=[DataRequired()],  render_kw={"placeholder": "Enter Division"})
     submit = SubmitField('Add Student')
+
+# Check this code
+class AddSchoolClass(FlaskForm):
+    educator = SelectField('Educator', choices=[], validators=[DataRequired()])
+    grade = SelectField('Grade', choices=[], validators=[DataRequired()])
+    division = SelectField('Division', choices=[], validators=[DataRequired()])
+    submit = SubmitField('Add Class')
+    
 
 class UpdateAttendanceForm(FlaskForm):
     date = DateField('Date', validators=[DataRequired()], format='%Y-%m-%d', render_kw={"placeholder": "Select Date"})
