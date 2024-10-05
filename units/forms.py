@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, PasswordField, StringField, validators, EmailField, DateField, SelectField
+from wtforms import SubmitField, PasswordField, StringField, validators, EmailField, DateField, SelectField, HiddenField
 from wtforms.fields.numeric import IntegerField
 from wtforms.fields.simple import BooleanField, TextAreaField
 from wtforms.validators import EqualTo, DataRequired, Email, Length, Regexp, NumberRange
@@ -38,6 +38,15 @@ class Config(FlaskForm):
     submit = SubmitField('Submit')
 
 
+class GuardianForm(FlaskForm):
+    guardian_id = HiddenField()  # Hidden field to hold guardian ID
+    username = StringField('Username', validators=[DataRequired()])
+    first_name = StringField('First Name', validators=[DataRequired()])
+    last_name = StringField('Last Name', validators=[DataRequired()])
+    email = EmailField('Email', validators=[DataRequired(), Email()])
+    update = SubmitField('Update')
+    delete = SubmitField('Delete')
+
 class Login(FlaskForm):
     username = StringField('Username', validators=[DataRequired()], render_kw={"placeholder": "Enter your username"})
     password = PasswordField('Password', validators=[DataRequired()], render_kw={"placeholder": "Enter your password"})
@@ -60,7 +69,7 @@ class AddEducatorForm(FlaskForm):
         render_kw={"placeholder": "Enter your ID Number"}
     ) 
     email = StringField('Email', validators=[DataRequired(), Email()], render_kw={"placeholder": "Enter your email"})
-    mobile_number = StringField(
+    cell_number = StringField(
         'Cell Number', 
         validators=[
             DataRequired(), 
@@ -94,7 +103,7 @@ class AddSecretaryForm(FlaskForm):
         Regexp(r'^\d{13}$', message='RSA ID must be exactly 13 digits')
     ], render_kw={"placeholder": "Enter your ID Number"})
     email = EmailField('Email', validators=[DataRequired(), Email()], render_kw={"placeholder": "Enter your Email"})
-    mobile_number = StringField('Cell Number', validators=[
+    cell_number = StringField('Cell Number', validators=[
         DataRequired(), 
         Regexp(r'^\d{10}$', message='Cell number must be exactly 10 digits')
     ], render_kw={"placeholder": "Enter your Cell Number"})
@@ -105,7 +114,6 @@ class ManageProfileForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired()], render_kw={"placeholder": "Enter your email"})
     update_profile = SubmitField('Edit Details')
 
-
 class AddParentForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired(), Length(min=2, max=50)], render_kw={"placeholder": "Enter your First Name"})
     last_name = StringField('Last Name', validators=[DataRequired(), Length(min=2, max=50)], render_kw={"placeholder": "Enter your Last Name"})
@@ -114,7 +122,7 @@ class AddParentForm(FlaskForm):
         Regexp(r'^\d{13}$', message='RSA ID must be exactly 13 digits')
     ], render_kw={"placeholder": "Enter your ID Number"})
     email = EmailField('Email', validators=[DataRequired(), Email()], render_kw={"placeholder": "Enter your Email"})
-    mobile_number = StringField('Cell Number', validators=[
+    cell_number = StringField('Cell Number', validators=[
         DataRequired(), 
         Regexp(r'^\d{10}$', message='Cell number must be exactly 10 digits')
     ], render_kw={"placeholder": "Enter your Cell Number"})
@@ -140,13 +148,17 @@ class AddParentForm(FlaskForm):
 class AddStudentForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired(), Length(min=2, max=50)], render_kw={"placeholder": "Enter your First Name"})
     last_name = StringField('Last Name', validators=[DataRequired(), Length(min=2, max=50)], render_kw={"placeholder": "Enter your Last Name"})
-    rsa_id_num = StringField('RSA ID Number', validators=[
+    rsa_id_number = StringField('RSA ID Number', validators=[
         DataRequired(), 
         Regexp(r'^\d{13}$', message='RSA ID must be exactly 13 digits')
     ], render_kw={"placeholder": "Enter your ID Number"})
-    guardian = SelectField('Guardian', choices=[], coerce=int, validators=[DataRequired()], render_kw={"placeholder": "Guardian Name"})
-    grade = SelectField('Grade', choices=[], validators=[DataRequired()],  render_kw={"placeholder": "Enter Grade"})
-    division = SelectField('Division', choices=[], validators=[DataRequired()],  render_kw={"placeholder": "Enter Division"})
+    guardian_id = SelectField('Guardian', choices=[], coerce=int, validators=[DataRequired()], render_kw={"placeholder": "Guardian Name"})
+    class_choice = SelectField('Grade and Division', 
+        choices=[], 
+        coerce=int, 
+        validators=[DataRequired()], 
+        render_kw={"placeholder": "Select Grade and Division"}
+    )
     submit = SubmitField('Add Student')
 
 # Check this code
@@ -172,7 +184,7 @@ class ExemptionForm(FlaskForm):
     division = SelectField('Division', choices=[], validators=[DataRequired()])
     student_id = SelectField('Student ID', choices=[], validators=[DataRequired()])
     reason = TextAreaField('Reason for Exemption', validators=[DataRequired()])
-    submit = SubmitField('Update Attendance')
+    submit = SubmitField('Notify School')
 
 class GenerateClassListForm(FlaskForm):
     date = DateField('Date', validators=[DataRequired()], render_kw={"placeholder": "Enter Date"})

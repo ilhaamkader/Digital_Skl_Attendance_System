@@ -125,8 +125,10 @@ class GuardianDAO:
         return Guardian.query.get(guardian_id)
 
     @staticmethod
-    def add_guardian(username, password, first_name, last_name, email, cell_number, address, rsa_id_number, dependants_list):
-
+    def add_guardian(username, password, first_name, last_name, email, cell_number, address, rsa_id_number):
+        
+        guardian_dependants_list = []
+        
         new_guardian = Guardian(
             username=username,
             password=password,
@@ -136,7 +138,7 @@ class GuardianDAO:
             cell_number=cell_number,
             address=address,
             rsa_id_number=rsa_id_number,
-            guardian_dependants_list=dependants_list
+            guardian_dependants_list=guardian_dependants_list  
         )
         db.session.add(new_guardian)
         db.session.commit()
@@ -167,6 +169,8 @@ class StudentDAO:
         )
         db.session.add(new_student)
         db.session.commit()
+
+        return new_student
 
     @staticmethod
     def delete_student(student_id):

@@ -1,16 +1,10 @@
-{% extends 'base.html' %}
-{% from 'bootstrap/form.html' import render_form %}
-
-{% block title %}Add Student{% endblock %}
-
-{% block content %}
-    <h1>STUDENT</h1>
-    <div class="box">
-        <h2>ENTER STUDENT INFORMATION</h2>
-            <div class="inputBox">
-                <div class="inputBox">
-                    {{ render_form(form) }}
-                </div>
-            </div>
-    </div>
+{% extends 'base.html' %} {% from 'bootstrap/form.html' import render_form %} {%
+block title %}Add Student{% endblock %} {% block content %}
+<h1>STUDENT</h1>
+<div class="box">
+  <h2>ENTER STUDENT INFORMATION</h2>
+  <div class="inputBox">
+    <div class="inputBox">{{ render_form(form) }}</div>
+  </div>
+</div>
 {% endblock %}

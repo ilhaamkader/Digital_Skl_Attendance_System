@@ -53,7 +53,7 @@ class Guardian(db.Model, UserMixin):
     cell_number: Mapped[str] = mapped_column(unique=True)
     address: Mapped[str]
     rsa_id_number: Mapped[str] = mapped_column(unique=True)
-    guardian_dependants_list: Mapped[dict] = mapped_column(JSON)
+    guardian_dependants_list: Mapped[list] = mapped_column(JSON) # changed dict to list
 
     dependants: Mapped[list["Student"]] = relationship(back_populates="guardian")
 
@@ -73,7 +73,7 @@ class SchoolClass(db.Model):  # Changed from Class to SchoolClass
     class_id: Mapped[int] = mapped_column(primary_key=True)
     grade: Mapped[int] = mapped_column(Integer, nullable=False)
     division: Mapped[str] = mapped_column(String(1), nullable=False)  
-    class_students: Mapped[dict] = mapped_column(JSON)
+    class_students: Mapped[list] = mapped_column(JSON) # changed dict to list
 
     # Foreign keys
     educator_id: Mapped[int] = mapped_column(ForeignKey("educator.educator_id"))
@@ -84,7 +84,7 @@ class AttendanceRecord(db.Model):
     __tablename__ = 'attendance_record'
     attendance_record_id: Mapped[int] = mapped_column(primary_key=True)
     attendance_record_date: Mapped[datetime.date] = mapped_column(Date)
-    attendance_record_list: Mapped[dict] = mapped_column(JSON)
+    attendance_record_list: Mapped[list] = mapped_column(JSON) # changed dict to list
 
     # Foreign key
     class_id: Mapped[int] = mapped_column(ForeignKey("class.class_id"))

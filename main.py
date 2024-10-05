@@ -1,15 +1,15 @@
 from wtforms import BooleanField
 from flask_bootstrap import Bootstrap5
-from units.forms import Config, Login, ForgotPassword, ResetPassword, AddSecretaryForm, AddParentForm, AddStudentForm, UpdateAttendanceForm, AddEducatorForm, ExemptionForm, GenerateClassListForm, ManageProfileForm, ClassListForm
-from flask import Flask, jsonify, redirect, session, url_for, request, flash, render_template, current_app
+from units.forms import Config, Login, ForgotPassword, ResetPassword, AddSecretaryForm, AddParentForm, AddStudentForm, GuardianForm, UpdateAttendanceForm, AddEducatorForm, ExemptionForm, GenerateClassListForm, ManageProfileForm, ClassListForm
+from flask import Flask, jsonify, redirect, session, url_for, request, flash, render_template, current_app, get_flashed_messages
 from units import db, init_app, forms
-from units.dao import AdminDAO, UserDAO, SecretaryDAO, EducatorDAO, GuardianDAO, SchoolClassDAO#, DatabaseUtilityDAO  Added UserDAO for login
+from units.dao import AdminDAO, UserDAO, SecretaryDAO, EducatorDAO, GuardianDAO, SchoolClassDAO, StudentDAO#, DatabaseUtilityDAO  Added UserDAO for login
 from units.models import Admin, Secretary, Educator, Guardian, Student, SchoolClass, AttendanceRecord
 from flask_login import login_user, logout_user, login_required, current_user
 from units.utilities import save_config_data, is_configured, generate_username, role_required, generate_password, read_json_file#, update_grade_division_json, update_parent_json
 from flask_mail import Mail, Message
 from werkzeug.security import check_password_hash
-from sqlalchemy.exc import SQLAlchemyError
+
 import os
 
 from werkzeug.security import generate_password_hash
@@ -149,7 +149,6 @@ def forgot():
     return render_template('forgot-user-pass.html', form=forgot_form)
 
 @app.route('/logout')
-@login_required
 def logout():
     logout_user()
     return redirect(url_for('home'))
@@ -170,6 +169,47 @@ def change_password():
         flash('Password updated successfully!', 'success')
         return redirect(url_for('manage_profile'))
     return render_template('change-password.html', form=change_password_form)
+
+@app.route('/admin/all', methods=['GET'])
+def show_all_admins():
+    admins = AdminDAO.get_all_admins()
+    return render_template('admin-data.html', admins=admins)
+
+@app.route('/secretary/all', methods=['GET'])
+def show_all_secretaries():
+    secretaries = SecretaryDAO.get_all_secretaries()
+    return render_template('secretary-data.html', secretaries=secretaries)
+
+@app.route('/educator/all', methods=['GET'])
+def show_all_educators():
+    educators = EducatorDAO.get_all_educators()
+    return render_template('educator-data.html', educators=educators)
+
+@app.route('/guardian/all', methods=['GET', 'POST'])
+def show_all_guardians():
+    # Get the list of guardians from the database
+    guardians = GuardianDAO.get_all_guardians()
+
+    # Create a list of forms (one for each guardian)
+    guardian_forms = {guardian.guardian_id: GuardianForm(obj=guardian) for guardian in guardians}
+
+    if guardian_forms:
+        # Handle form submissions for updates or deletes
+        for guardian_id, form in guardian_forms.items():
+            if form.validate_on_submit():
+                if form.delete.data:
+                    GuardianDAO.delete_guardian(guardian_id)
+                    flash(f'Guardian with ID {guardian_id} deleted successfully!', 'success')
+                    return redirect(url_for('show_all_guardians'))
+                
+    # Render the template, passing the guardians and the forms
+    return render_template('parent-data.html', guardians=guardians, guardian_forms=guardian_forms)
+
+@app.route('/school_class/all', methods=['GET'])
+def show_all_classes():
+    classes = SchoolClassDAO.get_all_classes()
+    return render_template('school_class_table.html', classes=classes)
+
 
 # Admin routes ----------------------------------------------------------------------------------------------------
 
@@ -292,14 +332,13 @@ def get_admins():
         return jsonify({"error": "Access forbidden"}), 403
 
 
-
 # Secretary routes ------------------------------------------------------------------------------------------------
 @app.route('/secretary_dashboard')
 @role_required('s')
 def secretary_dashboard():
     return render_template('secretary-dashboard.html')
 
-@app.route('/add_class', methods=['GET', 'POST']) # the validation of 1 educator per a class needs to be implemented
+@app.route('/add_class', methods=['GET', 'POST']) # the validation of 1 educator per a class needs to be implemented and not 2 of the same classes to be added
 @role_required('s')
 def add_class():
     form = forms.AddSchoolClass()
@@ -325,8 +364,8 @@ def add_class():
             flash('Selected educator does not exist.')
             return redirect(url_for('add_class'))
 
-        # Initialize class_students as an empty dictionary
-        class_students = {}  # You can modify this based on your application's requirements
+        # Initialize class_students as an empty dictionary/list
+        class_students = []  # You can modify this based on your application's requirements {}
 
         try:
             SchoolClassDAO.add_class(
@@ -335,7 +374,7 @@ def add_class():
                 division=selected_division,
                 class_students=class_students
             )
-            flash(f'Class Grade {selected_grade} Division {selected_division} added with teacher {educator.name}!')
+            flash(f'Class Grade {selected_grade} Division {selected_division} added with teacher {educator.first_name}!')
             return redirect(url_for('secretary_dashboard'))  # Redirect to secretary_dashboard after success
         except Exception as e:
             # Handle exceptions (e.g., database errors)
@@ -390,94 +429,48 @@ def add_parent():
     return render_template('add-parent.html', form=form)
 
 
-@app.route('/add_student', methods=['GET', 'POST']) # Requires urgent attention!!!, redo Entire Logic
+@app.route('/add_student', methods=['GET', 'POST'])
 @role_required('s')
 def add_student():
     form = AddStudentForm()
 
     # Populate the guardian choices
-    form.guardian_id.choices = [
-        (guardian.guardian_id, f"{guardian.first_name} {guardian.last_name}")
-        for guardian in Guardian.query.order_by(Guardian.first_name, Guardian.last_name).all()
-    ]
-    
-    # Populate the school class choices
-    form.school_class_id.choices = [
-        (school_class.class_id, f'Grade {school_class.grade} - Division {school_class.division}')
-        for school_class in SchoolClass.query.order_by(SchoolClass.grade, SchoolClass.division).all()
-    ]
+    guardians = GuardianDAO.get_all_guardians()
+    form.guardian_id.choices = [(guardian.guardian_id, f'{guardian.first_name} {guardian.last_name}') for guardian in guardians]
 
-    if form.validate_on_submit():
-        # Add the student to the Student table
-        new_student = Student(
-            first_name=form.first_name.data.strip(),
-            last_name=form.last_name.data.strip(),
-            rsa_id_number=form.rsa_id_number.data.strip(),
-            guardian_id=form.guardian_id.data
-        )
-        db.session.add(new_student)
-        db.session.commit()
+    classes = SchoolClass.query.all()
+    form.class_choice.choices = [(school_class.class_id, f'Grade {school_class.grade} - {school_class.division}') for school_class in classes]
 
-        #Logic for adding to dependents list
-        # Retrieve the corresponding guardian using Session.get()
-        guardian = db.session.get(Guardian, form.guardian_id.data)
+    if request.method == 'POST' and form.validate_on_submit():
 
-        # Check if guardian exists
-        if guardian is None:
-            flash('Guardian not found.', 'error')
-            return redirect(url_for('register_student'))
+        first_name = form.first_name.data
+        last_name = form.last_name.data
+        rsa_id_number = form.rsa_id_number.data
+        selected_class = form.class_choice.data
+        guardian_id = form.guardian_id.data
 
-        # Ensure guardian_dependants_list is a dictionary
-        if not isinstance(guardian.guardian_dependants_list, dict):
-            guardian.guardian_dependants_list = {}
-
-        # Initialize 'dependants' if it does not exist
-        if 'dependants' not in guardian.guardian_dependants_list:
-            guardian.guardian_dependants_list['dependants'] = []
-
-        # Prepare the student's information, including the class ID
-        class_id = form.school_class_id.data
-        student_info = {
-            'first_name': new_student.first_name,
-            'last_name': new_student.last_name,
-            'rsa_id_number': new_student.rsa_id_number,
-            'class_id': class_id
-        }
-
-        existing_dependants = guardian.guardian_dependants_list['dependants']
-
-        # Check for existing dependant with the same RSA ID number
-        if any(dep['rsa_id_number'] == student_info['rsa_id_number'] for dep in existing_dependants):
-            flash('A dependant with this RSA ID number already exists.', 'warning')
-            return redirect(url_for('register_student'))
-
-        # Append the new student info to the dependants list
-        guardian.guardian_dependants_list['dependants'].append(student_info)
-        print(f"Added new dependant: {student_info}")
-
-        try:
-            # Commit changes to the database
-            db.session.commit()
-
-            updated_guardian = db.session.get(Guardian, form.guardian_id.data)
-            print(f"Updated guardian dependants: {updated_guardian.guardian_dependants_list}")
-            flash('Dependant registered successfully!', 'success')
-
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            flash('An error occurred while registering the dependant.', 'error')
-            print(f"Database commit failed: {e}")
-            return redirect(url_for('register_student'))
+        # Add the student to the Student table and retrieve the Student object
+        new_student = StudentDAO.add_student(first_name, last_name, rsa_id_number, guardian_id)
+        
+        # Get the newly added student's ID
+        if new_student:
+            student_id = new_student.student_id
+        else:
+            raise Exception("Failed to add the student.")
         
 
-        # Logic for adding to class
-        # Retrieve the corresponding school class
-        school_class = db.session.get(SchoolClass, form.school_class_id.data)
+        # Retrieve the selected guardian by ID
+        selected_guardian = Guardian.query.get(guardian_id)
+        new_dependants_list = selected_guardian.guardian_dependants_list.copy()
+        new_dependants_list.append([student_id, selected_class])
+        selected_guardian.guardian_dependants_list = new_dependants_list
+        db.session.commit()
 
-        # Add the student's info to the school class's student list
-        if 'students' not in school_class.class_students:
-            school_class.class_students['students'] = []
-        school_class.class_students['students'].append(student_info)
+        # Retrieve the selected class by ID
+        selected_class = SchoolClass.query.get(selected_class)
+        new_class_students = selected_class.class_students.copy()
+        new_class_students.append(student_id)
+        selected_class.class_students = new_class_students
         db.session.commit()
 
         flash('Student added successfully!', 'success')
@@ -619,57 +612,12 @@ def parent_dashboard():
     return render_template('parent-dashboard.html') 
    
 
-@app.route('/add_attendance_exemption', methods=['GET', 'POST'])
-def add_attendance_exemption():
+@app.route('/add_absentee_notice', methods=['GET', 'POST'])
+def add_absentee_notice():
     form = ExemptionForm()
-
-    form.grade.choices = [(grade.id, grade.name) for grade in Grades.query.all()]
-    form.division.choices = [(division.id, division.name) for division in Divisions.query.all()]
-
-    if form.grade.data and form.division.data:
-        form.student_id.choices = [(student.id, f"{student.first_name} {student.last_name}") 
-                                   for student in Students.query.filter_by(grade=form.grade.data, division=form.division.data).all()]
-
-    if request.method == 'POST' and form.validate_on_submit():
-        start_date = form.start_date.data
-        end_date = form.end_date.data
-        grade = form.grade.data
-        division = form.division.data
-        student_id = form.student_id.data
-        reason = form.reason.data
-
-        student = Students.query.get(student_id)
-        class_id = f"{grade}{division}"
-
-        current_date = start_date
-        while current_date <= end_date:
-            date_str = current_date.strftime('%Y-%m-%d')
-            filename = f"{date_str}_{class_id}_attendance.json"
-            filepath = os.path.join('attendance_records', filename)
-
-            if os.path.exists(filepath):
-                with open(filepath, 'r') as file:
-                    attendance_data = json.load(file)
-            else:
-                attendance_data = generate_daily_attendance(current_date, grade, division)
-
-            for student_record in attendance_data:
-                if student_record['student_id'] == student_id:
-                    student_record['attendance_status'] = 'Exempted'
-                    student_record['exemption_status'] = reason
-                    break
-
-            with open(filepath, 'w') as file:
-                json.dump(attendance_data, file, indent=4)
-
-            current_date += timedelta(days=1)
-
-        flash('Exemption successfully added.', 'success')
-        return redirect(url_for('secretary_dashboard'))
 
     return render_template('add-attendance-exemption.html', form=form)
 
- 
 
 
 if __name__ == "__main__":
@@ -680,3 +628,28 @@ if __name__ == "__main__":
     '''
     
     app.run(debug=True)
+
+#     |'-.--._ _________:
+#     |  /    |  __    __\
+#     | |  _  | [\_\= [\_\
+#     | |.' '. \.........|
+#     | ( <)  ||:       :|_
+#     \ '._.' | :.....: |_(o
+#       '-\_   \ .------./
+#       _   \   ||.---.||  _
+#      / \  '-._|/\n~~\n' | \
+#     (| []=.--[===[()]===[) |
+#     <\_/  \_______/ _.' /_/
+#     ///            (_/_/
+#     |\\            [\\
+#     ||:|           | I|
+#     |::|           | I|
+#     ||:|           | I|
+#     ||:|           : \:
+#     |\:|            \I|
+#     :/\:            ([])
+#     ([])             [|
+#      ||              |\_
+#     _/_\_            [ -'-.__
+#    <]   \>            \_____.>
+#      \__/

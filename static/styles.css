@@ -249,6 +249,50 @@ input[type="button"]:active {
 	opacity: 0.8;
 }
 
+/* Table Styling */
+.table-container {
+    width: 100%;
+    padding: 20px;
+}
+
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-container th,
+.table-container td {
+    padding: 12px;
+    text-align: center;
+    color: #4a4a4a; /* Dark grey text */
+    border-right: 1px solid #ddd; /* Light grey line between columns */
+}
+
+.table-container th {
+    background-color: #6de599;
+    color: #ffffff; /* White text for header */
+}
+
+.table-container tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.table-container tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+
+/* Add more specific styling if necessary */
+.table-container td {
+    padding: 10px;
+}
+
+/* Last column should not have the right border */
+.table-container th:last-child,
+.table-container td:last-child {
+    border-right: none;
+}
+
 /* Navbar Styling */
 .navbar {
 	width: 100%;
