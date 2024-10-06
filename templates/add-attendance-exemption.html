@@ -1,14 +1,39 @@
-{% extends 'base.html' %}
-{% from 'bootstrap/form.html' import render_form %}
+{% extends 'base.html' %} {% from 'bootstrap/form.html' import render_form %} {%
+block title %}Add Attendance Exemption{% endblock %} {% block content %}
+<h1>ATTENDANCE EXEMPTION</h1>
+<div class="box">
+  <h2>ADD EXEMPTION</h2>
+  <div class="inputBox">{{ render_form(form) }}</div>
+</div>
 
-{% block title %}Add Attendance Exemption{% endblock %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-{% block content %}
-    <h1>ATTENDANCE EXEMPTION</h1>
-    <div class="box">
-        <h2>ADD EXEMPTION</h2>
-        <div class="inputBox">
-            {{ render_form(form) }}
-        </div>
-    </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+  $(document).ready(function () {
+    // Assuming that the dropdown IDs are 'class-dropdown' and 'student-dropdown'
+    const classDropdown = $("class-info-dropdown");
+    const studentDropdown = $("student-dropdown");
+
+    // Listen for changes on the class dropdown
+    classDropdown.on("change", function () {
+      // Get the index of the selected option in the class dropdown
+      const selectedClassIndex = classDropdown.prop("selectedIndex");
+
+      // Automatically select the student at the same index
+      studentDropdown.prop("selectedIndex", selectedClassIndex);
+    });
+
+    // Listen for changes on the student dropdown
+    studentDropdown.on("change", function () {
+      // Get the index of the selected option in the student dropdown
+      const selectedStudentIndex = studentDropdown.prop("selectedIndex");
+
+      // Automatically select the class at the same index
+      classDropdown.prop("selectedIndex", selectedStudentIndex);
+    });
+  });
+</script>
+
 {% endblock %}

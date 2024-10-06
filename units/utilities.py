@@ -179,3 +179,8 @@ def generate_daily_attendance(date, grade, division):
 
     return filepath
     
+def get_logged_in_parent_id():
+    
+    if session.get('user_type') == 'p' and 'guardian_id' in session:
+        return session['guardian_id']
+    return None 

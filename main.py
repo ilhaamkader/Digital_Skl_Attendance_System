@@ -6,11 +6,13 @@ from units import db, init_app, forms
 from units.dao import AdminDAO, UserDAO, SecretaryDAO, EducatorDAO, GuardianDAO, SchoolClassDAO, StudentDAO#, DatabaseUtilityDAO  Added UserDAO for login
 from units.models import Admin, Secretary, Educator, Guardian, Student, SchoolClass, AttendanceRecord
 from flask_login import login_user, logout_user, login_required, current_user
-from units.utilities import save_config_data, is_configured, generate_username, role_required, generate_password, read_json_file#, update_grade_division_json, update_parent_json
+from units.utilities import save_config_data, is_configured, generate_username, role_required, generate_password, read_json_file, get_logged_in_parent_id#, update_grade_division_json, update_parent_json
 from flask_mail import Mail, Message
 from werkzeug.security import check_password_hash
 
 import os
+import json
+from datetime import timedelta, date
 
 from werkzeug.security import generate_password_hash
 
@@ -115,6 +117,12 @@ def login():
 
                 prefix = username[0].lower()
                 session['user_type'] = prefix  # Store user role in the session
+
+                # Store the guardian_id in session if the logged-in user is a parent
+                if session['user_type'] == 'p':  # assuming 'p' is for parents
+                    guardian = Guardian.query.filter_by(guardian_id=user.guardian_id).first()  # Adjust query to match your schema
+                    if guardian:
+                        session['guardian_id'] = guardian.guardian_id
 
                 if prefix == 'a':
                     flash('Welcome Admin!', 'success')
@@ -607,14 +615,96 @@ def generate_class_list():
 
 # Parent routes ---------------------------------------------------------------------------------------------------
 @app.route('/parent_dashboard')
-@role_required('p')  # Only admin users can access this page
+@role_required('p') 
 def parent_dashboard():
     return render_template('parent-dashboard.html') 
    
 
-@app.route('/add_absentee_notice', methods=['GET', 'POST'])
+@app.route('/add_absentee_notice', methods=['GET', 'POST']) # This needs validating for the date options and syncing the dropdown lists, 
+@role_required('p')
 def add_absentee_notice():
     form = ExemptionForm()
+
+    guardian_id = get_logged_in_parent_id()
+
+    if guardian_id:
+        guardian = Guardian.query.filter_by(guardian_id=guardian_id).first() # Step 2: Query the Guardian table for the dependents list
+
+        if guardian:
+            # Step 3: Extract student_id and class_id from the dependants list
+            dependants_list = guardian.guardian_dependants_list  # assuming this is a list of tuples [(student_id, class_id), ...]
+
+            # Step 4: Populate the 'student_id' & 'class_info' dropdown
+            student_choices = []
+            classroom_choice = []
+            for dep in dependants_list:
+                student_id = dep[0]
+                class_id = dep[1]
+                student = Student.query.filter_by(student_id=student_id).first()  # Fetch the student record
+                classroom = SchoolClass.query.filter_by(class_id=class_id).first()
+
+                if student:
+                    student_name = student.first_name  # Assuming 'first_name' is the column name
+                    student_choices.append((student_id, f"{student_name} (ID: {student_id}, Class ID: {class_id})"))
+
+                    class_grade = classroom.grade
+                    class_div = classroom.division
+                    classroom_choice.append((class_id, f"Grade {class_grade} - {class_div}"))
+            
+            form.student_id.choices = student_choices
+            form.class_info.choices = classroom_choice
+        else:
+            flash("Guardian not found.", "danger")
+    else:
+        flash("No guardian ID found in session.", "danger")
+
+    if request.method == 'POST' and form.validate_on_submit():
+            # Retrieve form data
+            start_date = form.start_date.data
+            end_date = form.end_date.data
+            student_id = form.student_id.data
+            class_id = form.class_info.data
+            reason = form.reason.data
+
+            # Step 5: Store the absentee notice in a JSON file
+            notices_folder = os.path.join(current_app.instance_path, 'notices')
+            if not os.path.exists(notices_folder):
+                os.makedirs(notices_folder)
+
+             # Define the path for the class-specific JSON file
+            class_json_path = os.path.join(notices_folder, f"{class_id}.json")
+
+            # Initialize the data structure
+            date_list = {}
+            
+            # Check if the JSON file already exists
+            if os.path.exists(class_json_path):
+                with open(class_json_path, 'r') as f:
+                    date_list = json.load(f)
+            else:
+                # Initialize empty list if the file is new
+                date_list = {}
+
+            # Generate a list of dates from start_date to end_date
+            current_date = start_date
+            while current_date <= end_date:
+                date_key = current_date.isoformat()  # Use ISO format as a key
+                if date_key not in date_list:
+                    date_list[date_key] = []  # Create a new list for this date
+                
+                # Append the student notice (id and reason) to the day's list
+                date_list[date_key].append({
+                    'student_id': student_id,
+                    'reason': reason
+                })
+                current_date += timedelta(days=1)
+
+            # Write the updated data back to the JSON file
+            with open(class_json_path, 'w') as f:
+                json.dump(date_list, f, indent=4)
+
+            flash("Absentee notice submitted successfully!", "success")
+
 
     return render_template('add-attendance-exemption.html', form=form)
 

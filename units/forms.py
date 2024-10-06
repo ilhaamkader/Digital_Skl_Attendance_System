@@ -180,10 +180,9 @@ class UpdateAttendanceForm(FlaskForm):
 class ExemptionForm(FlaskForm):
     start_date = DateField('Start Date', validators=[DataRequired()])
     end_date = DateField('End Date', validators=[DataRequired()])
-    grade = SelectField('Grade', choices=[], validators=[DataRequired()])
-    division = SelectField('Division', choices=[], validators=[DataRequired()])
-    student_id = SelectField('Student ID', choices=[], validators=[DataRequired()])
-    reason = TextAreaField('Reason for Exemption', validators=[DataRequired()])
+    class_info = SelectField('Class', validators=[DataRequired()])
+    student_id = SelectField('Student ID', choices=[], validators=[DataRequired()], id='student-dropdown')
+    reason = TextAreaField('Reason for Exemption', validators=[DataRequired()], id='class-info-dropdown')
     submit = SubmitField('Notify School')
 
 class GenerateClassListForm(FlaskForm):
