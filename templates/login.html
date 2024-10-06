@@ -1,22 +1,16 @@
-{% extends 'base.html' %}
-{% from 'bootstrap/form.html' import render_form %}
-
-{% block title %}Login Form{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% from 'bootstrap/form.html' import render_form %} {%
+block title %}Login Form{% endblock %} {% block content %}
 <h1>WELCOME!</h1>
-    <div class="box">
-        <h2>SIGN IN</h2>
+<div class="box">
+  <h2>SIGN IN</h2>
 
-        <div class="inputBox">
-            {{ render_form(form) }}
-            <div class="links">
-                <a href="{{ url_for('forgot') }}">Forgot Username?</a>
-                |
-                <a href="{{ url_for('forgot') }}">Forgot Password?</a>
-                |
-                <a href="{{ url_for('config') }}">Sign Up</a>
-            </div>
-        </div>
+  <div class="inputBox">
+    {{ render_form(form) }}
+    <div class="links">
+      <a href="{{ url_for('forgot') }}">Forgot Username?</a>
+      |
+      <a href="{{ url_for('forgot') }}">Forgot Password?</a>
     </div>
+  </div>
+</div>
 {% endblock %}

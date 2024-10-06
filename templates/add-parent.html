@@ -1,16 +1,15 @@
-{% extends 'base.html' %}
-{% from 'bootstrap/form.html' import render_form %}
-
-{% block title %}Add Parent{% endblock %}
-
-{% block content %}
-    <h1>PARENT/GUARDIAN</h1>
-    <div class="box">
-        <h2>ENTER YOUR INFORMATION</h2>
-            <div class="inputBox">
-                <div class="inputBox">
-                    {{ render_form(form) }}
-                </div>
-            </div>
+{% extends 'base.html' %} {% from 'bootstrap/form.html' import render_form %} {%
+block title %}Add Parent{% endblock %} {% block content %}
+<h1>PARENT/GUARDIAN</h1>
+<div class="box">
+  <h2>ENTER YOUR INFORMATION</h2>
+  <div class="inputBox">
+    <div class="inputBox">{{ render_form(form) }}</div>
+    <div class="links">
+      <a href="{{ url_for('show_all_guardians') }}"
+        >Go to Parent/Guardian Data</a
+      >
     </div>
+  </div>
+</div>
 {% endblock %}
