@@ -15,6 +15,9 @@
                     <p>No students assigned</p>
                 {% endfor %}
             </div>
+            <div class="inputBox">
+                <input type="button" value="Daily Attendance" onclick="window.location.href='{{ url_for('generate_class_list') }}'">
+            </div>
     </form>
     </div>
 </div>
