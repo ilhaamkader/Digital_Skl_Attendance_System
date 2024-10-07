@@ -41,6 +41,8 @@ class Educator(db.Model, UserMixin):
 
     def get_id(self):
         return str(self.educator_id)
+    
+    classes: Mapped[list["SchoolClass"]] = relationship("SchoolClass", back_populates="educator")
 
 class Guardian(db.Model, UserMixin):
     __tablename__ = 'guardian'
@@ -79,6 +81,7 @@ class SchoolClass(db.Model):  # Changed from Class to SchoolClass
     educator_id: Mapped[int] = mapped_column(ForeignKey("educator.educator_id"))
 
     attendance_record: Mapped[list["AttendanceRecord"]] = relationship(back_populates="class_")
+    educator: Mapped["Educator"] = relationship("Educator", back_populates="classes")
 
 class AttendanceRecord(db.Model):
     __tablename__ = 'attendance_record'

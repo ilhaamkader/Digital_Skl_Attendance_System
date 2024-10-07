@@ -182,7 +182,8 @@ class StudentDAO:
 class SchoolClassDAO:
     @staticmethod
     def get_all_classes():
-        return SchoolClass.query.all()
+        classroom = SchoolClass.query.all()
+        return [(cls.class_id, f"Grade {cls.grade} - {cls.division}") for cls in classroom]
 
     @staticmethod
     def get_class_by_id(class_id):

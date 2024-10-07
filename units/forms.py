@@ -1,8 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, PasswordField, StringField, validators, EmailField, DateField, SelectField, HiddenField
+from wtforms import FieldList, FormField, SubmitField, PasswordField, StringField, validators, EmailField, DateField, SelectField, HiddenField
 from wtforms.fields.numeric import IntegerField
 from wtforms.fields.simple import BooleanField, TextAreaField
 from wtforms.validators import EqualTo, DataRequired, Email, Length, Regexp, NumberRange
+from datetime import date
 
 class Config(FlaskForm):
     email = EmailField('Email', validators=[validators.Email(), validators.DataRequired()], render_kw={"placeholder": "Enter your email"})
@@ -185,14 +186,22 @@ class ExemptionForm(FlaskForm):
     reason = TextAreaField('Reason for Exemption', validators=[DataRequired()], id='class-info-dropdown')
     submit = SubmitField('Notify School')
 
+class StudentAttendanceForm(FlaskForm):
+    first_name = StringField('First Name', render_kw={"readonly": True})
+    last_name = StringField('Last Name', render_kw={"readonly": True})
+    notified = BooleanField('Notified', default=False, render_kw={"readonly": True})
+    status = SelectField('Status', choices=[('Present', 'Present'), ('Absent', 'Absent'), ('Late', 'Late')], default='Present')
+
 class GenerateClassListForm(FlaskForm):
-    date = DateField('Date', validators=[DataRequired()], render_kw={"placeholder": "Enter Date"})
-    grade = SelectField('Grade', choices=[], validators=[DataRequired()], render_kw={"placeholder": "Enter Grade"})
-    division = SelectField('Division', choices=[], validators=[DataRequired()], render_kw={"placeholder": "Enter Division"})
-    submit = SubmitField('Generate List')
+    date = StringField('Date', default=date.today().isoformat(), render_kw={"readonly": True})
+    class_name = SelectField('Class', choices=[], validators=[DataRequired()], render_kw={"placeholder": "Select Class"})
+    educator = StringField('Form Educator', render_kw={"readonly": True})
+
+    # Fields for the student list
+    students = FieldList(FormField(StudentAttendanceForm))  # For listing students dynamically
     
-class ClassListForm(FlaskForm):
-    date = StringField('Date', validators=[DataRequired()], render_kw={"readonly": True})
-    grade_division = StringField('Grade & Division', validators=[DataRequired()], render_kw={"readonly": True})
-    educator = StringField('Form Educator', validators=[DataRequired()], render_kw={"readonly": True})
-    submit = SubmitField('Submit Attendance')
+    # Two action buttons
+    generate = SubmitField('Generate List')
+    submit_attendance = SubmitField('Submit Attendance')
+
+
