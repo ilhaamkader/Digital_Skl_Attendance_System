@@ -171,11 +171,10 @@ class AddSchoolClass(FlaskForm):
     
 
 class UpdateAttendanceForm(FlaskForm):
-    date = DateField('Date', validators=[DataRequired()], format='%Y-%m-%d', render_kw={"placeholder": "Select Date"})
-    grade = SelectField('Grade', choices=[], validators=[DataRequired()],  render_kw={"placeholder": "Enter Grade"})
-    division = SelectField('Division', choices=[], validators=[DataRequired()],  render_kw={"placeholder": "Enter Division"})
-    student_id = SelectField('Student ID', choices=[], validators=[DataRequired()], render_kw={"placeholder": "Student ID Number"})
-    attendance_status = SelectField('Attendance Status', choices=[('Present', 'Present'), ('Absent', 'Absent')], validators=[DataRequired()], render_kw={"placeholder": "Update Status"})
+    date = StringField('Date', default=date.today().isoformat(), render_kw={"readonly": True})
+    class_name = SelectField('Class', choices=[], validators=[DataRequired()], render_kw={"placeholder": "Select Class"})
+    student_id = SelectField('Student ID', choices=[('James Adam', 'James Adam'), ('Paul Tim', 'Paul Tim')], validators=[DataRequired()], render_kw={"placeholder": "Student ID Number"})
+    attendance_status = SelectField('Attendance Status', choices=[('Present', 'Present'), ('Absent', 'Absent')], default='Absent')
     update_attendance = SubmitField('Update Attendance')
     
 class ExemptionForm(FlaskForm):
@@ -190,7 +189,7 @@ class StudentAttendanceForm(FlaskForm):
     first_name = StringField('First Name', render_kw={"readonly": True})
     last_name = StringField('Last Name', render_kw={"readonly": True})
     notified = BooleanField('Notified', default=False, render_kw={"readonly": True})
-    status = SelectField('Status', choices=[('Present', 'Present'), ('Absent', 'Absent'), ('Late', 'Late')], default='Present')
+    status = SelectField('Status', choices=[('Present', 'Present'), ('Absent', 'Absent')], default='Present' if not notified else 'Absent')
 
 class GenerateClassListForm(FlaskForm):
     date = StringField('Date', default=date.today().isoformat(), render_kw={"readonly": True})

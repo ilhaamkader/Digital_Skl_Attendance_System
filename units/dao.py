@@ -180,6 +180,11 @@ class StudentDAO:
             db.session.commit()
 
 class SchoolClassDAO:
+
+    @staticmethod
+    def get_all_classrooms():      
+        return SchoolClass.query.all()
+    
     @staticmethod
     def get_all_classes():
         classroom = SchoolClass.query.all()
@@ -215,6 +220,10 @@ class AttendanceRecordDAO:
     @staticmethod
     def get_attendance_record_by_id(attendance_record_id):
         return AttendanceRecord.query.get(attendance_record_id)
+    
+    @staticmethod
+    def get_attendance_records_by_date(attendance_date):
+        return AttendanceRecord.query.filter_by(attendance_record_date=attendance_date).all()
 
     @staticmethod
     def add_attendance_record(attendance_record_date, attendance_record_list, class_id):
@@ -232,8 +241,7 @@ class AttendanceRecordDAO:
         if record:
             db.session.delete(record)
             db.session.commit()
-
-
+    
 
 # Utility class for handling database script execution
 class DatabaseUtilityDAO:
