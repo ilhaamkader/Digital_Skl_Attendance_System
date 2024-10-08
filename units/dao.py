@@ -1,3 +1,4 @@
+from datetime import date
 from .models import Admin, Secretary, Educator, Guardian, Student, SchoolClass, AttendanceRecord, db
 from sqlalchemy import text
 from flask import current_app
@@ -79,6 +80,16 @@ class SecretaryDAO:
         db.session.commit()
 
     @staticmethod
+    def check_unique_fields(email, cell_number, rsa_id_num):
+        existing_secretary = Secretary.query.filter(
+            (Secretary.email == email) | 
+            (Secretary.cell_number == cell_number) | 
+            (Secretary.rsa_id_num == rsa_id_num)
+        ).first()
+
+        return existing_secretary is not None 
+
+    @staticmethod
     def delete_secretary(secretary_id):
         secretary = Secretary.query.get(secretary_id)
         if secretary:
@@ -107,6 +118,16 @@ class EducatorDAO:
         )
         db.session.add(new_educator)
         db.session.commit()
+
+    @staticmethod
+    def check_unique_fields(email, cell_number, rsa_id_num):
+        existing_secretary = Educator.query.filter(
+            (Educator.email == email) | 
+            (Educator.cell_number == cell_number) | 
+            (Educator.rsa_id_num == rsa_id_num)
+        ).first()
+
+        return existing_secretary is not None 
 
     @staticmethod
     def delete_educator(educator_id):
@@ -144,6 +165,16 @@ class GuardianDAO:
         db.session.commit()
 
     @staticmethod
+    def check_unique_fields(email, cell_number, rsa_id_number):
+        existing_secretary = Guardian.query.filter(
+            (Guardian.email == email) | 
+            (Guardian.cell_number == cell_number) | 
+            (Guardian.rsa_id_number == rsa_id_number)
+        ).first()
+
+        return existing_secretary is not None 
+
+    @staticmethod
     def delete_guardian(guardian_id):
         guardian = Guardian.query.get(guardian_id)
         if guardian:
@@ -171,6 +202,14 @@ class StudentDAO:
         db.session.commit()
 
         return new_student
+    
+    @staticmethod
+    def check_unique_fields(rsa_id_number):
+        existing_secretary = Student.query.filter(
+            (Student.rsa_id_number == rsa_id_number)
+        ).first()
+
+        return existing_secretary is not None 
 
     @staticmethod
     def delete_student(student_id):
@@ -212,6 +251,24 @@ class SchoolClassDAO:
             db.session.delete(class_)
             db.session.commit()
 
+    @staticmethod
+    def check_unique_class(grade, division):
+        """
+        Check if a class with the same grade and division already exists.
+        Returns True if a duplicate class exists, otherwise False.
+        """
+        existing_class = SchoolClass.query.filter_by(grade=grade, division=division).first()
+        return existing_class is not None
+
+    @staticmethod
+    def check_educator_allocation(educator_id):
+        """
+        Check if the educator is already allocated to a class.
+        Returns True if the educator is already allocated, otherwise False.
+        """
+        allocated_class = SchoolClass.query.filter_by(educator_id=educator_id).first()
+        return allocated_class is not None
+
 class AttendanceRecordDAO:
     @staticmethod
     def get_all_attendance_records():
@@ -222,9 +279,14 @@ class AttendanceRecordDAO:
         return AttendanceRecord.query.get(attendance_record_id)
     
     @staticmethod
-    def get_attendance_records_by_date(attendance_date):
-        return AttendanceRecord.query.filter_by(attendance_record_date=attendance_date).all()
+    def get_attendance_records_for_today():
+        # Get today's date
+        today = date.today()
 
+        # Query to get attendance records where the attendance_record_date matches today's date
+        return AttendanceRecord.query.filter_by(attendance_record_date=today).order_by(AttendanceRecord.attendance_record_id).all()
+
+        
     @staticmethod
     def add_attendance_record(attendance_record_date, attendance_record_list, class_id):
         new_record = AttendanceRecord(
