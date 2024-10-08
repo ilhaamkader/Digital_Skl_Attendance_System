@@ -25,18 +25,25 @@
               class="navbar-logo"
           /></a>
         </li>
-        <li><a href="{{ url_for('login') }}">LOG IN</a></li>
-        <li><a href="{{ url_for('generate_class_list') }}">CLASS LIST</a></li>
-        {% if session['user_type'] == 'admin' %}
-        <a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
-        {% elif session['user_type'] == 'secretary' %}
-        <a href="{{ url_for('secretary_dashboard') }}">Secretary Dashboard</a>
-        {% elif session['user_type'] == 'educator' %}
-        <a href="{{ url_for('educator_dashboard') }}">Educator Dashboard</a>
-        {% elif session['user_type'] == 'parent' %}
-        <a href="{{ url_for('parent_dashboard') }}">Parent Dashboard</a>
-        {% endif %}
+        {% if current_user.is_authenticated %}
         <li><a href="{{ url_for('logout') }}">LOG OUT</a></li>
+        {% else %}
+        <li><a href="{{ url_for('login') }}">LOG IN</a></li>
+        {% endif %}
+        <li><a href="{{ url_for('generate_class_list') }}">CLASS LIST</a></li>
+        {% if current_user.is_authenticated %}
+        <li>
+          {% if session['user_type'] == 'a' %}
+          <a href="{{ url_for('admin_dashboard') }}">ADMIN DASHBOARD</a>
+          {% elif session['user_type'] == 's' %}
+          <a href="{{ url_for('secretary_dashboard') }}">SECRETARY DASHBOARD</a>
+          {% elif session['user_type'] == 'e' %}
+          <a href="{{ url_for('educator_dashboard') }}">EDUCATOR DASHBOARD</a>
+          {% elif session['user_type'] == 'p' %}
+          <a href="{{ url_for('parent_dashboard') }}">PARENT DASHBOARD</a>
+          {% endif %}
+        </li>
+        {% endif %}
       </ul>
     </nav>
 

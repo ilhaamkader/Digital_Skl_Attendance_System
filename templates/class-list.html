@@ -2,92 +2,65 @@
 block title %}Class List{% endblock %} {% block content %}
 <h1>CLASS LIST</h1>
 
-<div class="box">
+<div class="box" style="width: 100%">
   <form
     method="POST"
     action="{{ url_for('generate_class_list') }}"
     autocomplete="off"
   >
-    {{ form.csrf_token }}
+    {{ form.hidden_tag() }}
+    <!-- Includes CSRF token -->
 
-    <!-- Class and Date Information -->
-    <div class="form-row">
-      <div class="form-group col-md-4">
-        <label for="date">Date</label>
-        {{ form.date(class_="form-control") }}
+    <!-- Render main form fields -->
+    <div class="form-group">
+        {{ form.date.label(class="form-label") }} {{
+        form.date(class="form-control") }}
       </div>
-      <div class="form-group col-md-4">
-        <label for="class_name">Class</label>
-        {{ form.class_name(class_="form-control") }}
-      </div>
-      <div class="form-group col-md-4">
-        <label for="educator">Form Educator</label>
-        {{ form.educator(class_="form-control") }}
-      </div>
+
+    <div class="form-group">
+      {{ form.class_name.label(class="form-label") }} {{
+      form.class_name(class="form-control") }}
     </div>
 
-    <!-- Generate List Button -->
-    <div class="form-group">{{ form.generate(class_="btn btn-primary") }}</div>
+    <div class="form-group">
+      {{ form.educator.label(class="form-label") }} {{
+      form.educator(class="form-control") }}
+    </div>
 
-    <!-- Separator -->
     <hr style="border: 1px solid #ccc; margin: 20px 0" />
 
-    <!-- Student Register Section -->
-    <h2>STUDENT REGISTER</h2>
-    <div class="student-register">
-      {% for student in form.students %}
-      <div class="student-entry mb-4">
-        <div class="student-info">
-          <strong>First Name:</strong> {{
-          student.first_name(class_="form-control", readonly=True) }}<br />
-          <strong>Last Name:</strong> {{
-          student.last_name(class_="form-control", readonly=True) }}<br />
-          <strong>Notified:</strong>
-          {% if student.notified.data %} Yes {% else %} No {% endif %}<br />
-          <strong>Status:</strong> {{ student.status(class_="form-control") }}
-        </div>
-        <hr class="my-3" />
-      </div>
-      {% else %}
-      <div class="student-entry mb-4">
-        <div class="student-info">No student data available.</div>
-      </div>
-      {% endfor %}
-    </div>
+    <div class="table-container">
+    <table class="table table-bordered student-list">
+      <thead>
+        <tr>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Notified</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student_form in form.students %}
+        <tr style="text-align: center">
+          <td>{{ student_form.first_name(class="form-control-plaintext") }}</td>
+          <td>{{ student_form.last_name(class="form-control-plaintext") }}</td>
+          <td>
+            {{ student_form.notified(class="form-check-input", disabled=True) }}
+          </td>
+          <td>{{ student_form.status(class="form-select") }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div>
 
-    <!-- Submit Attendance Button -->
-    <div class="form-group">
-      {{ form.submit_attendance(class_="btn btn-success") }}
+    <hr style="border: 1px solid #ccc; margin: 20px 0" />
+
+    <!-- Render the action buttons -->
+    <div class="d-flex justify-content-between">
+      {{ form.generate(class="btn btn-secondary") }} {{
+      form.submit_attendance(class="btn btn-primary") }}
     </div>
   </form>
 </div>
-
-<!-- Additional Styling -->
-<style>
-  .student-register {
-    width: 100%;
-  }
-  .student-entry {
-    padding: 10px;
-    border: 1px solid #eaeaea;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-  }
-  .student-info {
-    margin: 10px 0;
-    font-size: 16px;
-    line-height: 1.5; /* Adjust line height for readability */
-  }
-  .student-info strong {
-    display: inline-block;
-    width: 120px; /* Fixed width for labels */
-  }
-  hr {
-    border-top: 1px solid #ccc; /* Custom horizontal line style */
-  }
-  .form-control[readonly] {
-    background-color: #e9ecef;
-    color: #495057;
-  }
-</style>
 {% endblock %}

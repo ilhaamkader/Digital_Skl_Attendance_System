@@ -3,7 +3,7 @@ from flask_bootstrap import Bootstrap5
 from units.forms import Config, Login, ForgotPassword, ResetPassword, AddSecretaryForm, AddParentForm, AddStudentForm, GuardianForm, UpdateAttendanceForm, AddEducatorForm, ExemptionForm, GenerateClassListForm, ManageProfileForm, StudentAttendanceForm
 from flask import Flask, jsonify, redirect, session, url_for, request, flash, render_template, current_app, get_flashed_messages
 from units import db, init_app, forms
-from units.dao import AdminDAO, UserDAO, SecretaryDAO, EducatorDAO, GuardianDAO, SchoolClassDAO, StudentDAO, SchoolClassDAO, AttendanceRecordDAO#, DatabaseUtilityDAO  Added UserDAO for login
+from units.dao import AdminDAO, UserDAO, SecretaryDAO, EducatorDAO, GuardianDAO, SchoolClassDAO, StudentDAO, SchoolClassDAO, AttendanceRecordDAO, DatabaseUtilityDAO  #Added UserDAO for login
 from units.models import Admin, Secretary, Educator, Guardian, Student, SchoolClass, AttendanceRecord
 from flask_login import login_user, logout_user, login_required, current_user
 from units.utilities import save_config_data, is_configured, generate_username, role_required, generate_password, read_json_file, get_logged_in_parent_id#, update_grade_division_json, update_parent_json
@@ -215,8 +215,8 @@ def show_all_guardians():
 
 @app.route('/school_class/all', methods=['GET'])
 def show_all_classes():
-    classes = SchoolClassDAO.get_all_classes()
-    return render_template('school_class_table.html', classes=classes)
+    classes = SchoolClassDAO.get_all_classrooms()
+    return render_template('class-data.html', classes=classes)
 
 
 # Admin routes ----------------------------------------------------------------------------------------------------
@@ -489,38 +489,26 @@ def add_student():
 
 @app.route('/update_attendance', methods=['GET', 'POST'])
 def update_attendance():
-    form = UpdateAttendanceForm() # Ensure its added in forms.py
+    form = UpdateAttendanceForm()  # Ensure it's added in forms.py
 
-    form.grade.choices = [(grade.id, grade.name) for grade in Grades.query.all()]
-    form.division.choices = [(division.id, division.name) for division in Divisions.query.all()]
+    # 1. Populate Grade and Division dropdown
+    form.class_name.choices = SchoolClassDAO.get_all_classes()
 
-    if request.method == 'POST' and form.grade.data and form.division.data:
-        class_id = f"{form.grade.data}{form.division.data}"
-        students = Students.query.filter_by(grade=form.grade.data, division=form.division.data).all()
-        form.student_id.choices = [(student.id, f"{student.first_name} {student.last_name}") for student in students]
-        
+    # 2. Set the current date in the form
+    form.date.data = datetime.now().strftime('%Y-%m-%d')  # Set the current date
+
     if request.method == 'POST' and form.validate_on_submit():
-        date_str = form.date.data.strftime('%Y-%m-%d')
-        class_id = f"{form.grade.data}{form.division.data}"
-        filename = f"{date_str}_{class_id}_attendance.json"
-        filepath = os.path.join('attendance_records', filename)
+        # Your logic for updating attendance goes here
+        # For example, saving data to the database
+        # ...
 
-        if os.path.exists(filepath):
-            with open(filepath, 'r') as file:
-                attendance_data = json.load(file)
+        # Flash a success message
+        flash('Attendance updated successfully.', 'success')
 
-            for student_record in attendance_data:
-                if student_record['student_id'] == form.student_id.data:
-                    student_record['attendance_status'] = form.attendance_status.data
-                    break
+        # Redirect to secretary_dashboard after flashing the message
+        return redirect(url_for('secretary_dashboard'))
 
-            with open(filepath, 'w') as file:
-                json.dump(attendance_data, file, indent=4)
-
-            flash('Attendance updated successfully.', 'success')
-            return redirect(url_for('secretery_dashboard'))
-        else:
-            flash('Attendance record not found for the selected class and date.', 'danger')
+    
 
     return render_template('update-attendance.html', form=form)
 
@@ -541,74 +529,122 @@ def add_absentee_notice_secretary():
 
     form.class_info.choices = classroom_choice
 
-    # Step 2: Update the 'student_id' dropdown based on selected class
-    if form.class_info.data:
-        selected_class_id = form.class_info.data
-        # Fetch the students for the selected class
-        students = Student.query.filter_by(class_id=selected_class_id).all()
+    # Check if the button to fetch students is pressed
+    if request.method == 'POST':
+        if 'fetch_students' in request.form:  # Check if fetch_students button was pressed
+            selected_class_id = form.class_info.data
+            # Fetch the students for the selected class
+            students = Student.query.filter_by(class_id=selected_class_id).all()
 
-        student_choices = []
-        for student in students:
-            student_id = student.student_id
-            student_name = student.first_name  # Assuming 'first_name' is the column name
-            student_choices.append((student_id, f"{student_name} (ID: {student_id})"))
+            student_choices = []
+            for student in students:
+                student_id = student.student_id
+                student_name = student.first_name  # Assuming 'first_name' is the column name
+                student_choices.append((student_id, f"{student_name} (ID: {student_id})"))
 
-        form.student_id.choices = student_choices
+            form.student_id.choices = student_choices
+        elif form.validate_on_submit():  # Check if the submit button was pressed
+            # Retrieve form data
+            start_date = form.start_date.data
+            end_date = form.end_date.data
+            student_id = form.student_id.data
+            class_id = form.class_info.data
+            reason = form.reason.data
 
-    else:
-        # Empty choices if no class is selected
-        form.student_id.choices = []
+            # Step 3: Store the absentee notice in a JSON file
+            notices_folder = os.path.join(current_app.instance_path, 'notices')
+            if not os.path.exists(notices_folder):
+                os.makedirs(notices_folder)
 
-    if request.method == 'POST' and form.validate_on_submit():
-        # Retrieve form data
-        start_date = form.start_date.data
-        end_date = form.end_date.data
-        student_id = form.student_id.data
-        class_id = form.class_info.data
-        reason = form.reason.data
+            # Define the path for the class-specific JSON file
+            class_json_path = os.path.join(notices_folder, f"{class_id}.json")
 
-        # Step 3: Store the absentee notice in a JSON file
-        notices_folder = os.path.join(current_app.instance_path, 'notices')
-        if not os.path.exists(notices_folder):
-            os.makedirs(notices_folder)
-
-        # Define the path for the class-specific JSON file
-        class_json_path = os.path.join(notices_folder, f"{class_id}.json")
-
-        # Initialize the data structure
-        date_list = {}
-
-        # Check if the JSON file already exists
-        if os.path.exists(class_json_path):
-            with open(class_json_path, 'r') as f:
-                date_list = json.load(f)
-        else:
-            # Initialize an empty list if the file is new
+            # Initialize the data structure
             date_list = {}
 
-        # Generate a list of dates from start_date to end_date
-        current_date = start_date
-        while current_date <= end_date:
-            date_key = current_date.isoformat()  # Use ISO format as a key
-            if date_key not in date_list:
-                date_list[date_key] = []  # Create a new list for this date
+            # Check if the JSON file already exists
+            if os.path.exists(class_json_path):
+                with open(class_json_path, 'r') as f:
+                    date_list = json.load(f)
+            else:
+                # Initialize an empty list if the file is new
+                date_list = {}
 
-            # Append the student notice (id and reason) to the day's list
-            date_list[date_key].append({
-                'student_id': student_id,
-                'reason': reason
-            })
-            current_date += timedelta(days=1)
+            # Generate a list of dates from start_date to end_date
+            current_date = start_date
+            while current_date <= end_date:
+                date_key = current_date.isoformat()  # Use ISO format as a key
+                if date_key not in date_list:
+                    date_list[date_key] = []  # Create a new list for this date
 
-        # Write the updated data back to the JSON file
-        with open(class_json_path, 'w') as f:
-            json.dump(date_list, f, indent=4)
+                # Append the student notice (id and reason) to the day's list
+                date_list[date_key].append({
+                    'student_id': student_id,
+                    'reason': reason
+                })
+                current_date += timedelta(days=1)
 
-        flash("Absentee notice submitted successfully!", "success")
+            # Write the updated data back to the JSON file
+            with open(class_json_path, 'w') as f:
+                json.dump(date_list, f, indent=4)
 
-    return render_template('add-attendance-exemption.html', form=form)
+            flash("Absentee notice submitted successfully!", "success")
+    return render_template('add-secretary-notice.html', form=form)
 
 
+@app.route('/missing_students', methods=['GET', 'POST'])
+def missing_students():
+    pass
+'''
+   try:
+        # Get the current date
+        current_date = datetime.now().strftime('%Y-%m-%d')
+
+        # Path to the JSON file for the current date
+        file_path = os.path.join(app.instance_path, 'missing_students', f'{current_date}.json')
+
+        # Check if the file exists
+        if not os.path.exists(file_path):
+            return jsonify({'status': 'No missing students data found for today.'}), 404
+
+        # Load the missing students data from the JSON file
+        with open(file_path, 'r') as json_file:
+            missing_students_data = json.load(json_file)
+
+        # List to store details of missing students to be returned
+        students_info = []
+
+        # Iterate over each class and query student details
+        for classid, student_ids in missing_students_data.items():
+            for student_id in student_ids:
+                # Query the Students table for the student's details
+                student = StudentDAO.get_student_by_id(student_id)
+                if student:
+                    # Query the Guardians table for the guardian's details
+                    guardian = GuardianDAO.get_guardian_by_id(student.guardian_id)
+                    
+                    # Collect all necessary details
+                    student_info = {
+                        'classId': classid,
+                        'firstName': student.first_name,
+                        'lastName': student.last_name,
+                        'parentContact': guardian.cell_number,
+                        'address': guardian.address
+                    }
+                    
+                    # Append to the list of student details
+                    students_info.append(student_info)
+
+        # If no students found, return a message
+        if not students_info:
+            return jsonify({'status': 'No missing students details available.'}), 200
+
+        # Return the collected student info
+        return jsonify({'students': students_info}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+'''
 # Educator routes --------------------------------------------------------------------------------------------------
 @app.route('/educator_dashboard')
 @role_required('e')
@@ -635,7 +671,7 @@ def generate_class_list():
 
     # 2. Set the current date in the form
     form.date.data = datetime.now().strftime('%Y-%m-%d')
-
+    print(form.validate_on_submit())
     if request.method == 'POST' and form.validate_on_submit():
         # 3. Extract class ID and query class info
         selected_class_id = form.class_name.data.split(' - ')[-1]
@@ -669,7 +705,7 @@ def generate_class_list():
                             date_list = notices_data[current_date_str]
 
                             # Extract notified students for the current date
-                            notified_students = [entry['student_id'] for entry in date_list]
+                            notified_students = [int(entry['student_id']) for entry in date_list]
                 except json.JSONDecodeError:
                     flash('Error reading notification data.', 'danger')
 
@@ -687,8 +723,11 @@ def generate_class_list():
                     # Check if student was notified based on JSON
                     student_form.notified.data = True if student_id in notified_students else False
 
-                    # Set default attendance status as "Present"
-                    student_form.status.data = 'Present'
+                    # Set status based on whether the student was notified
+                    if student_form.notified.data:
+                        student_form.status.data = 'Absent'  # If notified, mark as Absent
+                    else:
+                        student_form.status.data = 'Present'  # Otherwise, mark as Present
 
                     # Append the student form entry to the FieldList
                     form.students.append_entry(student_form)
@@ -697,6 +736,7 @@ def generate_class_list():
 
             # Submit Attendance button logic
             if form.submit_attendance.data:
+                print("Submitting attendance...")
                 attendance_record_list = []
 
                 # Iterate through the student forms and extract data
@@ -707,6 +747,7 @@ def generate_class_list():
 
                     # Append to attendance record list
                     attendance_record_list.append([student_id, notified, status])
+                    print(f"Student ID: {student_id}, Notified: {notified}, Status: {status}")
                 
                 # 6. Add attendance record to the DB
                 attendance_record_date = form.date.data
@@ -821,10 +862,8 @@ def add_absentee_notice():
 
 if __name__ == "__main__":
     app = initialize_server()
-    '''
-    with app.app_context():
-        DatabaseUtilityDAO.execute_sql_script("static/script.sql")
-    '''
+    '''with app.app_context():
+        DatabaseUtilityDAO.execute_sql_script("static/script.sql")'''
     
     app.run(debug=True)
 
