@@ -5,6 +5,10 @@ from flask import Flask, jsonify, redirect, session, url_for, request, flash, re
 from units import db, init_app, forms
 from units.dao import AdminDAO, UserDAO, SecretaryDAO, EducatorDAO, GuardianDAO, SchoolClassDAO, StudentDAO, SchoolClassDAO, AttendanceRecordDAO, DatabaseUtilityDAO  #Added UserDAO for login
 from units.models import Admin, Secretary, Educator, Guardian, Student, SchoolClass, AttendanceRecord
+from units.student_attendance_tracker import MissingStudentIdentifier
+from units.json_timestamp_manager import JSONTimestampManager
+from units.overseer import Overseer  # Import from overseer.py
+from units.missing_children_report import MissingStudentReport
 from flask_login import login_user, logout_user, login_required, current_user
 from units.utilities import save_config_data, is_configured, generate_username, role_required, generate_password, read_json_file, get_logged_in_parent_id#, update_grade_division_json, update_parent_json
 from flask_mail import Mail, Message
@@ -51,8 +55,6 @@ app.config["MAIL_PASSWORD"] = 'mtrz tebu zxes feiy'
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True    
 mail = Mail(app) 
-
-
 
 
 # General routes --------------------------------------------------------------------------------------------------
@@ -238,6 +240,12 @@ def add_secretary():
         email = form.email.data
         cell_number = form.cell_number.data
 
+        # Check if email, cell_number, or rsa_id_num already exists
+        if SecretaryDAO.check_unique_fields(email, cell_number, rsa_id_num):
+            flash('Error: Email, Cell Number, or RSA ID Number already exists in the system.', 'danger')
+            return render_template('add-secretary.html', form=form)
+
+        # If unique, proceed to create the secretary
         username = generate_username(email, 'secretary')
         password = generate_password()
         hashed_password = generate_password_hash(password)
@@ -268,6 +276,7 @@ def add_secretary():
 
     return render_template('add-secretary.html', form=form)
 
+
 @app.route('/add_educator', methods=['GET', 'POST'])
 @role_required('a')
 def add_educator():
@@ -279,6 +288,11 @@ def add_educator():
         rsa_id_num = form.rsa_id_num.data
         email = form.email.data
         cell_number = form.cell_number.data
+
+        # Check if email, cell_number, or rsa_id_num already exists
+        if EducatorDAO.check_unique_fields(email, cell_number, rsa_id_num):
+            flash('Error: Email, Cell Number, or RSA ID Number already exists in the system.', 'danger')
+            return render_template('add-educator.html', form=form)
 
         username = generate_username(email, 'educator')
         password = generate_password()
@@ -371,6 +385,16 @@ def add_class():
         if not educator:
             flash('Selected educator does not exist.')
             return redirect(url_for('add_class'))
+        
+        # Check if the class with the same grade and division already exists
+        if SchoolClassDAO.check_unique_class(selected_grade, selected_division):
+            flash('Error: Class with the same Grade and Division already exists.', 'danger')
+            return redirect(url_for('add_class'))
+
+        # Check if the educator is already allocated to another class
+        if SchoolClassDAO.check_educator_allocation(selected_educator_id):
+            flash('Error: Educator is already allocated to a class.', 'danger')
+            return redirect(url_for('add_class'))
 
         # Initialize class_students as an empty dictionary/list
         class_students = []  # You can modify this based on your application's requirements {}
@@ -405,6 +429,10 @@ def add_parent():
         cell_number = form.cell_number.data
         address = f"{form.street_address.data}, {form.suburb.data}, {form.city.data}, {form.province.data}"
 
+        # Check if email, cell_number, or rsa_id_num already exists
+        if GuardianDAO.check_unique_fields(email, cell_number, rsa_id_num):
+            flash('Error: Email, Cell Number, or RSA ID Number already exists in the system.', 'danger')
+            return render_template('add-parent.html', form=form)
 
         username = generate_username(email, 'parent')
         password = generate_password()
@@ -456,6 +484,11 @@ def add_student():
         rsa_id_number = form.rsa_id_number.data
         selected_class = form.class_choice.data
         guardian_id = form.guardian_id.data
+
+        # Check if email, cell_number, or rsa_id_num already exists
+        if StudentDAO.check_unique_fields(rsa_id_number):
+            flash('Error: RSA ID Number already exists in the system.', 'danger')
+            return render_template('add-student.html', form=form)
 
         # Add the student to the Student table and retrieve the Student object
         new_student = StudentDAO.add_student(first_name, last_name, rsa_id_number, guardian_id)
@@ -591,60 +624,50 @@ def add_absentee_notice_secretary():
             flash("Absentee notice submitted successfully!", "success")
     return render_template('add-secretary-notice.html', form=form)
 
+# Define the path to the JSON file for storing timestamps
+TIMESTAMP_FILE_PATH = os.path.join(app.instance_path, 'timestamps.json')
+
+# Initialize dependencies for Overseer
+json_manager = JSONTimestampManager(TIMESTAMP_FILE_PATH)
+dao = AttendanceRecordDAO()
+report_generator = MissingStudentReport()
+
+# Initialize and start the Overseer in the background
+overseer = Overseer(json_manager, dao, report_generator)
+overseer.start()  # Start the Overseer background process
 
 @app.route('/missing_students', methods=['GET', 'POST'])
 def missing_students():
-    pass
-'''
-   try:
-        # Get the current date
-        current_date = datetime.now().strftime('%Y-%m-%d')
+    # Step 1: Retrieve today's attendance records using AttendanceRecordDAO
+    attendance_records = AttendanceRecordDAO.get_attendance_records_for_today()
 
-        # Path to the JSON file for the current date
-        file_path = os.path.join(app.instance_path, 'missing_students', f'{current_date}.json')
+    if not attendance_records:
+        return jsonify({"message": "No attendance records found for today."}), 404
+    
+    # Step 2: For each attendance record, identify the missing students
+    result = []
+    for record in attendance_records:
+        attendance_list = record['attendance_list']  # Get the attendance list for the record
+        class_id = record['class_id']
 
-        # Check if the file exists
-        if not os.path.exists(file_path):
-            return jsonify({'status': 'No missing students data found for today.'}), 404
+        # Initialize MissingStudentIdentifier with the attendance list
+        missing_student_identifier = MissingStudentIdentifier(attendance_list)
+        missing_students = missing_student_identifier.get_missing_students()
 
-        # Load the missing students data from the JSON file
-        with open(file_path, 'r') as json_file:
-            missing_students_data = json.load(json_file)
+        # Update the timestamp for this class in the JSON file
+        json_manager.update_timestamp(class_id)
 
-        # List to store details of missing students to be returned
-        students_info = []
+        # Add the result for each class
+        result.append({
+            "attendance_id": record['attendance_id'],
+            "class_id": record['class_id'],
+            "missing_students": missing_students
+        })
 
-        # Iterate over each class and query student details
-        for classid, student_ids in missing_students_data.items():
-            for student_id in student_ids:
-                # Query the Students table for the student's details
-                student = StudentDAO.get_student_by_id(student_id)
-                if student:
-                    # Query the Guardians table for the guardian's details
-                    guardian = GuardianDAO.get_guardian_by_id(student.guardian_id)
-                    
-                    # Collect all necessary details
-                    student_info = {
-                        'classId': classid,
-                        'firstName': student.first_name,
-                        'lastName': student.last_name,
-                        'parentContact': guardian.cell_number,
-                        'address': guardian.address
-                    }
-                    
-                    # Append to the list of student details
-                    students_info.append(student_info)
+    # Step 3: Return the result as a JSON response
+    return jsonify(result), 200
 
-        # If no students found, return a message
-        if not students_info:
-            return jsonify({'status': 'No missing students details available.'}), 200
 
-        # Return the collected student info
-        return jsonify({'students': students_info}), 200
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-'''
 # Educator routes --------------------------------------------------------------------------------------------------
 @app.route('/educator_dashboard')
 @role_required('e')
@@ -660,7 +683,9 @@ def educator_dashboard():
     ]
     return render_template('educator-dashboard.html', class_list=class_list)
 
-NOTICES_PATH = r'C:\Users\Dell\Desktop\Digital_Skl_Attendance_System\instance\notices'
+# NOTICES_PATH = r'C:\Users\Dell\Desktop\Digital_Skl_Attendance_System\instance\notices'
+current_dir = os.path.dirname(os.path.abspath(__file__))
+NOTICES_PATH = os.path.join(current_dir, 'instance', 'notices')
 
 @app.route('/generate_class_list', methods=['GET', 'POST'])
 def generate_class_list():
@@ -672,6 +697,7 @@ def generate_class_list():
     # 2. Set the current date in the form
     form.date.data = datetime.now().strftime('%Y-%m-%d')
     print(form.validate_on_submit())
+    print(form.errors)
     if request.method == 'POST' and form.validate_on_submit():
         # 3. Extract class ID and query class info
         selected_class_id = form.class_name.data.split(' - ')[-1]
@@ -740,8 +766,8 @@ def generate_class_list():
                 attendance_record_list = []
 
                 # Iterate through the student forms and extract data
-                for index, student_form in enumerate(form.students):
-                    student_id = student_ids[index]
+                print(f"Length of student_ids: {len(student_ids)}, Length of form.students: {len(form.students)}")
+                for student_form, student_id in zip(form.students, student_ids):
                     notified = 1 if student_form.notified.data else 0  # Boolean to 1/0
                     status = 1 if student_form.status.data == 'Present' else 0  # Present -> 1, Absent -> 0
 
@@ -750,7 +776,8 @@ def generate_class_list():
                     print(f"Student ID: {student_id}, Notified: {notified}, Status: {status}")
                 
                 # 6. Add attendance record to the DB
-                attendance_record_date = form.date.data
+                attendance_record_date_str = form.date.data  # '2024-10-08'
+                attendance_record_date = datetime.strptime(attendance_record_date_str, '%Y-%m-%d').date()
 
                 AttendanceRecordDAO.add_attendance_record(
                     attendance_record_date=attendance_record_date,
@@ -759,9 +786,9 @@ def generate_class_list():
                 )
 
                 flash('Attendance record submitted successfully!', 'success')
-                return redirect(url_for('generate_class_list'))
+                return redirect(url_for('educator_dashboard'))
         
-    return render_template('class-list.html', form=form) # using new template, old template is generate-class-list.html
+    return render_template('class-list.html', form=form)
 
 # Parent routes ---------------------------------------------------------------------------------------------------
 @app.route('/parent_dashboard')

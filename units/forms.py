@@ -191,6 +191,9 @@ class StudentAttendanceForm(FlaskForm):
     notified = BooleanField('Notified', default=False, render_kw={"readonly": True})
     status = SelectField('Status', choices=[('Present', 'Present'), ('Absent', 'Absent')], default='Present' if not notified else 'Absent')
 
+    class Meta:
+        csrf = False  # Disable CSRF for this nested form
+
 class GenerateClassListForm(FlaskForm):
     date = StringField('Date', default=date.today().isoformat(), render_kw={"readonly": True})
     class_name = SelectField('Class', choices=[], validators=[DataRequired()], render_kw={"placeholder": "Select Class"})
