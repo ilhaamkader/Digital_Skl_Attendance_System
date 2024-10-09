@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}School Attendance System{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <ul>
+        <li>
+          <a href="{{ url_for('setup') }}"
+            ><img
+              src="{{ url_for('static', filename='school_attendance.png') }}"
+              alt="Logo"
+              class="navbar-logo"
+          /></a>
+        </li>
+        {% if current_user.is_authenticated %}
+        <li><a href="{{ url_for('logout') }}">LOG OUT</a></li>
+        {% else %}
+        <li><a href="{{ url_for('login') }}">LOG IN</a></li>
+        {% endif %} {% if current_user.is_authenticated %}
+        <li>
+          {% if session['user_type'] == 'a' %}
+          <a href="{{ url_for('admin_dashboard') }}">ADMIN DASHBOARD</a>
+          {% elif session['user_type'] == 's' %}
+          <a href="{{ url_for('secretary_dashboard') }}">SECRETARY DASHBOARD</a>
+          {% elif session['user_type'] == 'e' %}
+          <a href="{{ url_for('educator_dashboard') }}">EDUCATOR DASHBOARD</a>
+          {% elif session['user_type'] == 'p' %}
+          <a href="{{ url_for('parent_dashboard') }}">PARENT DASHBOARD</a>
+          {% endif %}
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+
+    <!-- Content -->
+    <div class="container mt-4">
+      {% with messages = get_flashed_messages(with_categories=True) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="alert alert-{{ category }} alert-dismissible fade show"
+        role="alert"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="close"
+          data-dismiss="alert"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% endfor %} {% endif %} {% endwith %} {% block content %}
+      <!-- Page-specific content will go here -->
+      {% endblock %}
+    </div>
+
+    <!-- Bootstrap JS and dependencies (jQuery) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+      // Automatically dismiss alerts after 5 seconds (5000 milliseconds)
+      setTimeout(function () {
+        $(".alert").alert("close");
+      }, 5000);
+    </script>
+  </body>
+</html>

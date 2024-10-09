@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Missing Students Report</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>MISSING STUDENT REPORT</h1>
+      <div class="list-container">
+        {% if report %} {% for class_id, record in report.items() %}
+        <h2>Class: {{ record.class_info }}</h2>
+        <!-- Display Grade and Division -->
+        {% for student in record.students %}
+        <ul>
+          <li>
+            Student:
+            <a
+              href="{{ url_for('display_student', student_num=student.student_num) }}"
+            >
+              {{ student.full_name }}
+              <!-- Display Full Name -->
+            </a>
+          </li>
+        </ul>
+        {% endfor %}
+        <hr />
+        {% endfor %} {% else %}
+        <p>No missing students report available.</p>
+        {% endif %}
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Educator Dashboard{% endblock %}
+
+{% block content %}
+<h1>EDUCATOR DASHBOARD</h1>
+
+<div class="box">
+    <form method="POST">
+        <h2>CHECK ATTENDANCE!</h2>
+            <div class="inputBox">
+                
+            </div>
+            <div class="inputBox">
+                <input type="button" value="Daily Attendance" onclick="window.location.href='{{ url_for('generate_class_list') }}'">
+            </div>
+    </form>
+    </div>
+</div>
+<input type="button" value="Change Password" onclick="window.location.href='{{ url_for('change_password') }}'">
+
+{% endblock %}

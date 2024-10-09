@@ -1,0 +1,40 @@
+{% extends 'base.html' %} {% block title %}Guardian Table{% endblock %} {% block
+content %}
+<h1>GUARDIAN TABLE</h1>
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Email</th>
+        <th>Cell Number</th>
+        <th>RSA ID</th>
+        <th>Address</th>
+        <th>Dependants</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for guardian in guardians %}
+      <tr>
+        <td>{{ guardian.guardian_id }}</td>
+        <td>{{ guardian.username }}</td>
+        <td>{{ guardian.first_name }}</td>
+        <td>{{ guardian.last_name }}</td>
+        <td>{{ guardian.email }}</td>
+        <td>{{ guardian.cell_number }}</td>
+        <td>{{ guardian.rsa_id_number }}</td>
+        <td>{{ guardian.address[:20] }}...</td>
+        <td>{{ guardian.guardian_dependants_list | tojson }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="9">No Guardian Data Available</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

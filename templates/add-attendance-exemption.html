@@ -1,0 +1,75 @@
+{% extends 'base.html' %} {% from 'bootstrap/form.html' import render_form %} {%
+block title %}Add Attendance Exemption{% endblock %} {% block content %}
+<h1>ATTENDANCE EXEMPTION</h1>
+<div class="box">
+  <h2>ADD EXEMPTION</h2>
+  <div class="inputBox">{{ render_form(form) }}</div>
+</div>
+
+<!-- Include Flatpickr CSS and JS -->
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+  $(document).ready(function () {
+    // Get the current date to use as the minimum selectable date
+    const today = new Date().toISOString().split("T")[0]; // Current date in YYYY-MM-DD format
+
+    // Initialize Flatpickr for the start date
+    const startDatePicker = flatpickr("#start_date", {
+      dateFormat: "Y-m-d", // Customize your preferred date format
+      minDate: today, // Disable past dates
+      disable: [
+        function (date) {
+          // Disable weekends: Saturday (6) and Sunday (0)
+          return date.getDay() === 6 || date.getDay() === 0;
+        },
+      ],
+      onChange: function (selectedDates, dateStr, instance) {
+        // Set the end date picker to disable dates before the selected start date
+        endDatePicker.set("minDate", dateStr);
+      },
+    });
+
+    // Initialize Flatpickr for the end date
+    const endDatePicker = flatpickr("#end_date", {
+      dateFormat: "Y-m-d", // Customize your preferred date format
+      minDate: today, // Disable past dates
+      disable: [
+        function (date) {
+          // Disable weekends: Saturday (6) and Sunday (0)
+          return date.getDay() === 6 || date.getDay() === 0;
+        },
+      ],
+    });
+
+    // Assuming that the dropdown IDs are 'class-dropdown' and 'student-dropdown'
+    const classDropdown = $("#class-info-dropdown");
+    const studentDropdown = $("#student-dropdown");
+
+    // Listen for changes on the class dropdown
+    classDropdown.on("change", function () {
+      // Get the index of the selected option in the class dropdown
+      const selectedClassIndex = classDropdown.prop("selectedIndex");
+
+      // Automatically select the student at the same index
+      studentDropdown.prop("selectedIndex", selectedClassIndex);
+    });
+
+    // Listen for changes on the student dropdown
+    studentDropdown.on("change", function () {
+      // Get the index of the selected option in the student dropdown
+      const selectedStudentIndex = studentDropdown.prop("selectedIndex");
+
+      // Automatically select the class at the same index
+      classDropdown.prop("selectedIndex", selectedStudentIndex);
+    });
+  });
+</script>
+
+{% endblock %}
