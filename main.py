@@ -1,6 +1,6 @@
 from wtforms import BooleanField
 from flask_bootstrap import Bootstrap5
-from units.forms import Config, Login, ForgotPassword, ResetPassword, AddSecretaryForm, AddParentForm, AddStudentForm, GuardianForm, UpdateAttendanceForm, AddEducatorForm, ExemptionForm, GenerateClassListForm, ManageProfileForm, StudentAttendanceForm, DisplayForm
+from units.forms import Config, Login, ForgotPassword, ResetPassword, AddSecretaryForm, AddParentForm, AddStudentForm, GuardianForm, UpdateAttendanceForm, AddEducatorForm, ExemptionForm, GenerateClassListForm, ManageProfileForm, StudentAttendanceForm
 from flask import Flask, jsonify, redirect, session, url_for, request, flash, render_template, current_app, get_flashed_messages
 from units import db, init_app, forms
 from units.dao import AdminDAO, UserDAO, SecretaryDAO, EducatorDAO, GuardianDAO, SchoolClassDAO, StudentDAO, SchoolClassDAO, AttendanceRecordDAO, DatabaseUtilityDAO  #Added UserDAO for login
@@ -181,26 +181,31 @@ def change_password():
     return render_template('change-password.html', form=change_password_form)
 
 @app.route('/admin/all', methods=['GET'])
+@role_required('a')
 def show_all_admins():
     admins = AdminDAO.get_all_admins()
     return render_template('admin-data.html', admins=admins)
 
 @app.route('/student/all', methods=['GET'])
+@role_required('s')
 def show_all_students():
     students = StudentDAO.get_all_students()
     return render_template('student-data.html', students=students)
 
 @app.route('/secretary/all', methods=['GET'])
+@role_required('a')
 def show_all_secretaries():
     secretaries = SecretaryDAO.get_all_secretaries()
     return render_template('secretary-data.html', secretaries=secretaries)
 
 @app.route('/educator/all', methods=['GET'])
+@role_required('a')
 def show_all_educators():
     educators = EducatorDAO.get_all_educators()
     return render_template('educator-data.html', educators=educators)
 
 @app.route('/guardian/all', methods=['GET', 'POST'])
+@role_required('s')
 def show_all_guardians():
     # Get the list of guardians from the database
     guardians = GuardianDAO.get_all_guardians()
@@ -221,6 +226,7 @@ def show_all_guardians():
     return render_template('parent-data.html', guardians=guardians, guardian_forms=guardian_forms)
 
 @app.route('/school_class/all', methods=['GET'])
+@role_required('s')
 def show_all_classes():
     classes = SchoolClassDAO.get_all_classrooms()
     return render_template('class-data.html', classes=classes)
@@ -333,6 +339,7 @@ def add_educator():
 # This logic needs to be added to all db tables
 
 @app.route('/secretaries', methods= ['GET'])
+@role_required('a')
 def getAllSec():
     sec = SecretaryDAO.get_all_secretaries()
     return jsonify([{
@@ -341,6 +348,7 @@ def getAllSec():
     } for secre in sec])
 
 @app.route('/students', methods=['GET'])
+@role_required('s')
 def get_all_students():
     students = StudentDAO.get_all_students()
     return jsonify([{
@@ -350,6 +358,7 @@ def get_all_students():
     } for student in students])
 
 @app.route('/admins', methods=['GET'])
+@role_required('a')
 @login_required
 def get_admins():
     if isinstance(current_user, Admin):
@@ -526,6 +535,7 @@ def add_student():
 
 
 @app.route('/update_attendance', methods=['GET', 'POST'])
+@role_required('s')
 def update_attendance():
     form = UpdateAttendanceForm()  # Ensure it's added in forms.py
 
@@ -636,9 +646,51 @@ def add_absentee_notice_secretary():
 @app.route('/missing-students', methods=['GET', 'POST'])
 def missing_students():
     with app.app_context():
+        # Get the report containing missing students by class_id
         report = overseer.get_overdue_report()
-        print(overseer.get_overdue_report())
-        return render_template('missing-students.html', report=report)
+
+        # Create a dictionary to hold class details (grade, division) and student info along with missing students
+        class_report = {}
+        
+        for class_id, students in report.items():
+            # Get class details (grade, division) for the class_id
+            class_info = SchoolClassDAO.get_class_by_id(class_id)
+            
+            # Prepare the list to hold student details
+            student_details_list = []
+
+            for student_id in students:
+                # Get student details (first name, last name) for each student_id
+                student_info = StudentDAO.get_student_by_id(student_id)
+                
+                if student_info:
+                    # Add student details (student number, first name, last name) to the list
+                    student_details_list.append({
+                        'student_num': student_id,
+                        'full_name': f"{student_info.first_name} {student_info.last_name}"
+                    })
+                else:
+                    # Handle case where student_info is None (student_id not found in database)
+                    student_details_list.append({
+                        'student_num': student_id,
+                        'full_name': "Unknown Student"
+                    })
+
+            # Add class info and student details to the class_report
+            if class_info:
+                class_report[class_id] = {
+                    'class_info': f"Grade {class_info.grade} - {class_info.division}",
+                    'students': student_details_list
+                }
+            else:
+                class_report[class_id] = {
+                    'class_info': "Class information not available",
+                    'students': student_details_list
+                }
+
+        return render_template('missing-students.html', report=class_report)
+
+
     
 @app.route('/display-student/<student_num>', methods=['GET', 'POST'])
 def display_student(student_num):
@@ -661,6 +713,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 NOTICES_PATH = os.path.join(current_dir, 'instance', 'notices')
 
 @app.route('/generate_class_list', methods=['GET', 'POST'])
+@role_required('e')
 def generate_class_list():
     form = GenerateClassListForm()
     
@@ -860,23 +913,7 @@ def add_absentee_notice():
 
             flash("Absentee notice submitted successfully!", "success")
 
-
     return render_template('add-attendance-exemption.html', form=form)
-
-students = [
-    {'first_name': 'John', 'last_name': 'Doe', 'grade': 'A', 'division': '1', 'cell_number': '123-456-7890'},
-    {'first_name': 'Jane', 'last_name': 'Smith', 'grade': 'B', 'division': '2', 'cell_number': '987-654-3210'},
-    {'first_name': 'Alice', 'last_name': 'Johnson', 'grade': 'A', 'division': '1', 'cell_number': '555-444-3333'},
-]
-
-@app.route('/missing', methods=['GET', 'POST'])
-def missing():
-    form = DisplayForm()
-    
-    if form.validate_on_submit():  # Check if the form is submitted
-        return render_template('false-missing.html', form=form, students=students)  # Pass data to the template
-
-    return render_template('false-missing.html', form=form, students=None)  # Show the form but no data yet
 
 if __name__ == "__main__":
     app = initialize_server()

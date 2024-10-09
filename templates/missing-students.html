@@ -7,25 +7,32 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
     />
-    <!-- You can include Bootstrap or other CSS frameworks if desired -->
   </head>
   <body>
     <div class="container">
       <h1>MISSING STUDENT REPORT</h1>
       <div class="list-container">
-      {% if report %} {% for class_id, record in report.items() %}
-      </h2>Class : {{ class_id }}</h2>
-      {% for student in record %}
-      <ul>
-        <li> Student number :<a href="{{ url_for('display_student', student_num=student) }}"> {{ student }} </a></li>
-      </ul>
-      {% endfor %}
-      <hr> 
-      {% endfor %} 
-      {% else %}
-      <p>No missing students report available.</p>
-      {% endif %}
-    </div>
+        {% if report %} {% for class_id, record in report.items() %}
+        <h2>Class: {{ record.class_info }}</h2>
+        <!-- Display Grade and Division -->
+        {% for student in record.students %}
+        <ul>
+          <li>
+            Student:
+            <a
+              href="{{ url_for('display_student', student_num=student.student_num) }}"
+            >
+              {{ student.full_name }}
+              <!-- Display Full Name -->
+            </a>
+          </li>
+        </ul>
+        {% endfor %}
+        <hr />
+        {% endfor %} {% else %}
+        <p>No missing students report available.</p>
+        {% endif %}
+      </div>
     </div>
   </body>
 </html>

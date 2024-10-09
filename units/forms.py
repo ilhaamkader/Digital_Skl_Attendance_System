@@ -205,7 +205,3 @@ class GenerateClassListForm(FlaskForm):
     # Two action buttons
     generate = SubmitField('Generate List')
     submit_attendance = SubmitField('Submit Attendance')
-
-
-class DisplayForm(FlaskForm):
-    display_button = SubmitField('Display Students')
